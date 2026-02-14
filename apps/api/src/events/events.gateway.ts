@@ -14,7 +14,7 @@ const clients: Record<string, Socket> = {};
 const numClients = (clientsObj: Record<string, Socket>) =>
   Object.keys(clientsObj).length;
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: true })
 export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -46,12 +46,15 @@ export class EventsGateway
 
   @SubscribeMessage('events')
   handleEvent(
-    @MessageBody() data: string,
+    // @MessageBody() data: number,
+    @MessageBody() data: { index: number; char: string },
     @ConnectedSocket() client: Socket,
   ): void {
-    console.log(`received: ${data}, broadcasting...`);
+    console.log(`received: ${JSON.stringify(data)}, broadcasting...`);
     this.server.emit('events', {
-      message: data,
+      // message: data,
+      index: data.index,
+      char: data.char,
       senderSocketId: client.id,
     });
   }
