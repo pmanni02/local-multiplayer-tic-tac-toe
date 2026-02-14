@@ -1,5 +1,6 @@
 'use client';
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
+import io, { Socket } from 'socket.io-client';
 
 function Square({
   value,
@@ -27,9 +28,72 @@ export default function Board() {
   const [squares, setSquares] = useState(Array(9).fill(''))
   const [gameStatus, setGameStatus] = useState("")
 
+  const [socket, setSocket] = useState<null | Socket>()
+  const [isConnected, setIsConnected] = useState(false);
+  const [transport, setTransport] = useState("N/A");
+
+  // SOURCE: https://socket.io/how-to/use-with-nextjs
+  useEffect(() => {
+    const socket = io('http://localhost:3001');
+    setSocket(socket)
+
+    function onConnect() {
+      if (socket) {
+        setIsConnected(true);
+        setTransport(socket.io.engine.transport.name);
+
+        socket.io.engine.on("upgrade", (transport) => {
+          setTransport(transport.name);
+        });
+
+        console.log(`connection opened: ${socket.id}`);
+      }
+    }
+
+    function onDisconnect() {
+      setIsConnected(false);
+      setTransport("N/A");
+
+      console.log(`socket disconnected`);
+    }
+
+    function onEvents(myObj: { index: number, char: string, senderSocketId: string }) {
+      console.log(`curSocketId`, socket.id)
+      console.log(`senderSocketId: ${myObj.senderSocketId}`)
+      console.log(`Client received: ${JSON.stringify(myObj)}`)
+
+      // only update frontend if message received was from another client
+      if (socket.id && socket.id !== myObj.senderSocketId) {
+        const squaresCopy: string[] = squares.slice();
+
+        squaresCopy[myObj.index] = playerChar;
+        console.log('squaresCopy', squaresCopy);
+
+        setSquares(squaresCopy)
+      }
+    }
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("events", onEvents)
+
+    return () => {
+      // socket.off("connect", onConnect);
+      // socket.off("disconnect", onDisconnect);
+      // socket.off("events", onEvents)
+      socket.disconnect()
+    };
+  }, []);
+
   const click = (index: number): void => {
     if (squares[index] || gameStatus !== "") {
       return
+    }
+
+    // emit message
+    if (socket) {
+      // socket.emit("events", index)
+      socket.emit("events", { index, char: playerChar })
     }
 
     const squaresCopy: string[] = squares.slice()
@@ -118,6 +182,8 @@ export default function Board() {
         <div className="flex flex-row justify-center p-[2px]">
           <button type="button" className="text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded" onClick={() => resetSquares()}>Reset</button>
         </div>
+        <p className="flex justify-center">Connection: {isConnected ? "connected" : "disconnected"}</p>
+        <p className="flex justify-center">Transport: {transport}</p>
       </div>
     </>
   )
