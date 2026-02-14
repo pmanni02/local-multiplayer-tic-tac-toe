@@ -1,32 +1,34 @@
-'use client';
+"use client";
 import { useEffect, useState } from "react";
-import io, { Socket } from 'socket.io-client';
+import io, { Socket } from "socket.io-client";
 import { Square } from "./square";
 
 export default function Board() {
-  const [playerChar, setPlayerChar] = useState<'X' | 'O'>('X')
-  const [squares, setSquares] = useState(Array(9).fill(''))
-  const [gameStatus, setGameStatus] = useState("")
+  const [playerChar, setPlayerChar] = useState<"X" | "O">("X");
+  const [squares, setSquares] = useState(Array(9).fill(""));
+  const [gameStatus, setGameStatus] = useState("");
 
-  const [socket, setSocket] = useState<null | Socket>()
+  const [socket, setSocket] = useState<null | Socket>();
   const [isConnected, setIsConnected] = useState(false);
   const [transport, setTransport] = useState("N/A");
 
   // SOURCE: https://socket.io/how-to/use-with-nextjs
   useEffect(() => {
-    const socket = io('http://localhost:3001');
-    setSocket(socket)
+    // connect to NestJS websocket server
+    const socket = io("http://localhost:3001");
+    setSocket(socket);
 
     function onConnect() {
       if (socket) {
         setIsConnected(true);
         setTransport(socket.io.engine.transport.name);
 
+        // upgrade connection to websocket
         socket.io.engine.on("upgrade", (transport) => {
           setTransport(transport.name);
         });
 
-        console.log(`connection opened: ${socket.id}`);
+        console.log(`[CLIENT] - connection opened: ${socket.id}`);
       }
     }
 
@@ -37,69 +39,72 @@ export default function Board() {
       console.log(`socket disconnected`);
     }
 
-    function onEvents(myObj: { index: number, char: string, senderSocketId: string }) {
-      console.log(`curSocketId`, socket.id)
-      console.log(`senderSocketId: ${myObj.senderSocketId}`)
-      console.log(`Client received: ${JSON.stringify(myObj)}`)
+    function onEvents(myObj: {
+      index: number;
+      char: string;
+      senderSocketId: string;
+    }) {
+      console.log(`curSocketId`, socket.id);
+      console.log(`senderSocketId: ${myObj.senderSocketId}`);
+      console.log(`Client received: ${JSON.stringify(myObj)}`);
 
       // only update frontend if message received was from another client
       if (socket.id && socket.id !== myObj.senderSocketId) {
         const squaresCopy: string[] = squares.slice();
 
         squaresCopy[myObj.index] = playerChar;
-        console.log('squaresCopy', squaresCopy);
+        console.log("squaresCopy", squaresCopy);
 
-        setSquares(squaresCopy)
+        setSquares(squaresCopy);
       }
     }
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
-    socket.on("events", onEvents)
+    socket.on("events", onEvents);
 
     return () => {
       // socket.off("connect", onConnect);
       // socket.off("disconnect", onDisconnect);
       // socket.off("events", onEvents)
-      socket.disconnect()
+      socket.disconnect();
     };
   }, []);
 
   const click = (index: number): void => {
     if (squares[index] || gameStatus !== "") {
-      return
+      return;
     }
 
     // emit message
     if (socket) {
-      // socket.emit("events", index)
-      socket.emit("events", { index, char: playerChar })
+      socket.emit("events", { index, char: playerChar });
     }
 
-    const squaresCopy: string[] = squares.slice()
+    const squaresCopy: string[] = squares.slice();
     squaresCopy[index] = playerChar;
-    setSquares(squaresCopy)
+    setSquares(squaresCopy);
 
     if (gameWon(squaresCopy)) {
-      setGameStatus('WINNER!')
+      setGameStatus("WINNER!");
     } else if (gameTie(squaresCopy)) {
-      setGameStatus('TIE!')
+      setGameStatus("TIE!");
     }
 
-    if (playerChar === 'X') {
-      setPlayerChar('O')
+    if (playerChar === "X") {
+      setPlayerChar("O");
     } else {
-      setPlayerChar('X')
+      setPlayerChar("X");
     }
-  }
+  };
 
   const gameTie = (squares: string[]) => {
-    const emptySquares = squares.filter(val => val === "")
+    const emptySquares = squares.filter((val) => val === "");
     if (emptySquares.length === 0) {
-      return true
+      return true;
     }
-    return false
-  }
+    return false;
+  };
 
   const gameWon = (squares: string[]) => {
     // if values at 0,1,2 OR 3,4,5 OR 6,7,8 are all the same (rows)
@@ -113,8 +118,8 @@ export default function Board() {
       [1, 4, 7],
       [2, 5, 8],
       [0, 4, 8],
-      [2, 4, 6]
-    ]
+      [2, 4, 6],
+    ];
 
     let gameOver = false;
     winConditions.forEach((winCondition) => {
@@ -122,26 +127,28 @@ export default function Board() {
       const validWinCondition =
         squares[x!] !== "" &&
         squares[x!] === squares[y!] &&
-        squares[y!] === squares[z!]
+        squares[y!] === squares[z!];
       if (validWinCondition) {
         gameOver = true;
         return;
       }
-    })
-    return gameOver
-  }
+    });
+    return gameOver;
+  };
 
   const resetSquares = () => {
-    const newSquares = Array(9).fill("")
-    setSquares(newSquares)
-    setGameStatus("")
-  }
+    const newSquares = Array(9).fill("");
+    setSquares(newSquares);
+    setGameStatus("");
+  };
 
   return (
     <>
       <div className="p-40">
         <h2 className="flex justify-center text-xl">Tic Tac Toe</h2>
-        <p className="flex justify-center text-black text-l font-bold h-8">{gameStatus}</p>
+        <p className="flex justify-center text-black text-l font-bold h-8">
+          {gameStatus}
+        </p>
         <div className="flex flex-col">
           <div className="flex flex-row justify-center h-[103px] gap-[3px]">
             <Square value={squares[0]} onClickFn={() => click(0)} />
@@ -160,11 +167,19 @@ export default function Board() {
           </div>
         </div>
         <div className="flex flex-row justify-center p-[2px]">
-          <button type="button" className="text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded" onClick={() => resetSquares()}>Reset</button>
+          <button
+            type="button"
+            className="text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
+            onClick={() => resetSquares()}
+          >
+            Reset
+          </button>
         </div>
-        <p className="flex justify-center">Connection: {isConnected ? "connected" : "disconnected"}</p>
+        <p className="flex justify-center">
+          Connection: {isConnected ? "connected" : "disconnected"}
+        </p>
         <p className="flex justify-center">Transport: {transport}</p>
       </div>
     </>
-  )
+  );
 }
