@@ -5,6 +5,10 @@ import { ConnectionStatus } from "./connection-status";
 import { Board } from "./board";
 import { gameTie, gameWon } from "./game-utils";
 import { ResetGame } from "./game-actions";
+import { GameInfo } from "./game-info";
+
+export const WINNER = "WINNER!";
+export const TIE = "TIE!";
 
 export default function Game() {
   const [socket, setSocket] = useState<null | Socket>();
@@ -12,7 +16,7 @@ export default function Game() {
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
-  const [gameEvents, setGameEvents] = useState<{ squares: string[]; status: string; }[]>([])
+  // const [gameEvents, setGameEvents] = useState<{ squares: string[]; status: string; }[]>([])
   const [gameStatus, setGameStatus] = useState("");
 
   useEffect(() => {
@@ -22,20 +26,17 @@ export default function Game() {
     function onConnect() {
       if (socket) {
         setIsConnected(true);
-
-        // TEMP
-        // socket.io.engine.on("upgrade", (transport) => {
-        //   console.log(`upgraded to: ${transport.name}`);
-        // });
-
         console.log(`[CONNECT]: ${socket.id}`);
       }
     }
 
-    function onSetup(myObj: { playerChar: string, isPlayerTurn: boolean }) {
+    function onSetup(myObj: { playerChar: string; isPlayerTurn: boolean }) {
       console.log(`[SETUP]: player char: ${myObj.playerChar}`);
       if (myObj.playerChar === "X" || myObj.playerChar === "O") {
         setPlayerChar(myObj.playerChar);
+
+        // default first player to client with 'X' playerChar
+        setGameStatus(`Current player: X`);
       }
     }
 
@@ -44,14 +45,20 @@ export default function Game() {
       console.log(`[DISCONNECT]`);
     }
 
-    function onEvents(myObj: { squares: string[]; status: string; }) {
+    function onEvents(myObj: {
+      squares: string[];
+      status: string;
+      currentPlayer: string;
+    }) {
       setSquares(myObj.squares);
       setGameStatus(myObj.status);
 
       if (gameWon(myObj.squares)) {
-        setGameStatus("WINNER!");
+        setGameStatus(WINNER);
       } else if (gameTie(myObj.squares)) {
-        setGameStatus("TIE!");
+        setGameStatus(TIE);
+      } else {
+        setGameStatus(`Current player: ${myObj.currentPlayer}`);
       }
     }
 
@@ -69,20 +76,18 @@ export default function Game() {
 
   return (
     <>
-      <div className="p-40">
-        <span className="flex justify-center text-xl text-heading me-3">
+      <div className="flex flex-col p-40">
+        <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading">
           Tic Tac Toe
           <ConnectionStatus isConnected={isConnected} />
         </span>
-        <p className="flex justify-center text-black text-l font-bold h-8">
-          {gameStatus}
-        </p>
         <Board
           squares={squares}
           gameStatus={gameStatus}
           playerChar={playerChar}
           socket={socket}
         />
+        <GameInfo playerChar={playerChar} gameStatus={gameStatus} />
         <ResetGame socket={socket} />
       </div>
     </>

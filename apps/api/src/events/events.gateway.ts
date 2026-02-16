@@ -60,6 +60,7 @@ export class EventsGateway
     data: {
       squares: string[];
       status: string;
+      currentPlayer: string;
     },
     @ConnectedSocket() client: Socket,
   ): void {
@@ -67,6 +68,7 @@ export class EventsGateway
     this.server.emit('events', {
       squares: data.squares,
       status: data.status,
+      currentPlayer: data.currentPlayer,
     });
   }
 }

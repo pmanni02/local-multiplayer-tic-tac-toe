@@ -1,6 +1,7 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
 import { Nullable } from "../global";
+import { WINNER } from "./page";
 
 export function Board({
   squares,
@@ -14,14 +15,14 @@ export function Board({
   socket: Nullable<Socket>;
 }) {
   const click = (index: number): void => {
-    const numNonEmptySquares = squares.filter(x => x !== '').length
-    if (squares[index] || gameStatus !== "") {
+    const numNonEmptySquares = squares.filter((x) => x !== "").length;
+    if (squares[index] || gameStatus === WINNER) {
       return;
     } else if (
-      numNonEmptySquares % 2 === 0 && playerChar === 'O' ||
-      numNonEmptySquares % 2 !== 0 && playerChar === 'X'
+      (numNonEmptySquares % 2 === 0 && playerChar === "O") ||
+      (numNonEmptySquares % 2 !== 0 && playerChar === "X")
     ) {
-      return
+      return;
     }
 
     // update board, emit to all clients
@@ -33,12 +34,13 @@ export function Board({
       socket.emit("events", {
         squares: squaresCopy,
         status: gameStatus,
+        currentPlayer: playerChar === "X" ? "O" : "X",
       });
     }
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-black">
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
         <Square value={squares[0]!} onClickFn={() => click(0)} />
         <Square value={squares[1]!} onClickFn={() => click(1)} />

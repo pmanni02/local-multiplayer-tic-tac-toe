@@ -7,6 +7,7 @@ const resetSquares = (socket: Socket) => {
     socket.emit("events", {
       squares: newSquares,
       status: "",
+      currentPlayer: "X",
     });
   }
 };

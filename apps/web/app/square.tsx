@@ -11,7 +11,7 @@ export function Square({
     X: "text-red-500",
     O: "text-blue-500",
   };
-  const color = value ? textStyles[value] : ""
+  const color = value ? textStyles[value] : "";
   return (
     <div>
       <button
