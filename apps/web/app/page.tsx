@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
-import { Square } from "./square";
 import { GameStatus } from "./game-status";
+import { Board } from "./board";
 
-export default function Board() {
+export default function Game() {
   const [socket, setSocket] = useState<null | Socket>();
 
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
@@ -150,23 +150,7 @@ export default function Board() {
         <p className="flex justify-center text-black text-l font-bold h-8">
           {gameStatus}
         </p>
-        <div className="flex flex-col">
-          <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-            <Square value={squares[0]} onClickFn={() => click(0)} />
-            <Square value={squares[1]} onClickFn={() => click(1)} />
-            <Square value={squares[2]} onClickFn={() => click(2)} />
-          </div>
-          <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-            <Square value={squares[3]} onClickFn={() => click(3)} />
-            <Square value={squares[4]} onClickFn={() => click(4)} />
-            <Square value={squares[5]} onClickFn={() => click(5)} />
-          </div>
-          <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-            <Square value={squares[6]} onClickFn={() => click(6)} />
-            <Square value={squares[7]} onClickFn={() => click(7)} />
-            <Square value={squares[8]} onClickFn={() => click(8)} />
-          </div>
-        </div>
+        <Board squares={squares} squareClickFn={click} />
         <div className="flex flex-row justify-center p-[2px]">
           <button
             type="button"
