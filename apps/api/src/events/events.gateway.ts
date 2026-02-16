@@ -10,9 +10,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-const clients: Record<string, Socket> = {};
-const numClients = (clientsObj: Record<string, Socket>) =>
-  Object.keys(clientsObj).length;
+const players: Record<string, string> = {};
+const numPlayers = () => Object.keys(players).length;
 
 @WebSocketGateway({ cors: true })
 export class EventsGateway
@@ -25,14 +24,15 @@ export class EventsGateway
   }
 
   handleConnection(client: Socket) {
-    clients[client.id] = client;
-
-    let gameChar: string;
-    if (numClients(clients) <= 1) {
-      gameChar = 'X';
+    if (
+      numPlayers() === 0 ||
+      (numPlayers() === 1 && Object.entries(players)[0][1] !== 'X')
+    ) {
+      players[client.id] = 'X';
     } else {
-      gameChar = 'O';
+      players[client.id] = 'O';
     }
+    const gameChar = players[client.id];
 
     // send playerChar to connected client
     this.server.to(client.id).emit('setup', {
@@ -40,18 +40,18 @@ export class EventsGateway
     });
 
     console.log(
-      `[CONNECTED]: ${client.id}, ${gameChar}. Total: ${numClients(clients)}`,
+      `[CONNECTED]: ${client.id}, ${gameChar}. Total: ${numPlayers()}`,
     );
   }
 
   handleDisconnect(client: Socket) {
-    for (const [key] of Object.entries(clients)) {
+    for (const [key] of Object.entries(players)) {
       if (key === client.id) {
-        delete clients[key];
+        delete players[key];
       }
     }
 
-    console.log(`[DISCONNECTED]: ${client.id}. Total: ${numClients(clients)}`);
+    console.log(`[DISCONNECTED]: ${client.id}. Total: ${numPlayers()}`);
   }
 
   @SubscribeMessage('events')
