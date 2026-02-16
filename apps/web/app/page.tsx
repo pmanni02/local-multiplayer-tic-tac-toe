@@ -36,7 +36,7 @@ export default function Game() {
         setPlayerChar(myObj.playerChar);
 
         // default first player to client with 'X' playerChar
-        setGameStatus(`Current player: X`);
+        setGameStatus(`X`);
       }
     }
 
@@ -58,7 +58,7 @@ export default function Game() {
       } else if (gameTie(myObj.squares)) {
         setGameStatus(TIE);
       } else {
-        setGameStatus(`Current player: ${myObj.currentPlayer}`);
+        setGameStatus(myObj.currentPlayer);
       }
     }
 
@@ -77,7 +77,7 @@ export default function Game() {
   return (
     <>
       <div className="flex flex-col p-40">
-        <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading">
+        <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading rounded-t-xs">
           Tic Tac Toe
           <ConnectionStatus isConnected={isConnected} />
         </span>
