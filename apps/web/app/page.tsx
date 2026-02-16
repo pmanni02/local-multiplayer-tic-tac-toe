@@ -26,7 +26,16 @@ export default function Board() {
           setTransport(transport.name);
         });
 
-        console.log(`[CLIENT] - connection opened: ${socket.id}`);
+        console.log(`[CONNECT]: ${socket.id}`);
+      }
+    }
+
+    function onSetup(myObj: {
+      playerChar: string
+    }) {
+      console.log(`client player char: ${myObj.playerChar}`)
+      if (myObj.playerChar === 'X' || myObj.playerChar === 'O') {
+        setPlayerChar(myObj.playerChar)
       }
     }
 
@@ -34,7 +43,7 @@ export default function Board() {
       setIsConnected(false);
       setTransport("N/A");
 
-      console.log(`socket disconnected`);
+      console.log(`[DISCONNECT]`);
     }
 
     function onEvents(myObj: {
@@ -51,19 +60,10 @@ export default function Board() {
       }
     }
 
-    function onSetup(myObj: {
-      playerChar: string
-    }) {
-      console.log(`client player char: ${myObj.playerChar}`)
-      if (myObj.playerChar === 'X' || myObj.playerChar === 'O') {
-        setPlayerChar(myObj.playerChar)
-      }
-    }
-
     socket.on("connect", onConnect);
+    socket.on("setup", onSetup);
     socket.on("disconnect", onDisconnect);
     socket.on("events", onEvents);
-    socket.on("setup", onSetup);
 
     setSocket(socket);
 
@@ -77,6 +77,7 @@ export default function Board() {
       return;
     }
 
+    // update board, emit to all clients
     const squaresCopy: string[] = squares.slice();
     squaresCopy[index] = playerChar;
 

@@ -33,7 +33,6 @@ export class EventsGateway
     } else {
       gameChar = 'O';
     }
-    client.data.gameChar = gameChar;
 
     // send playerChar to connected client
     this.server.to(client.id).emit('setup', {
@@ -41,7 +40,7 @@ export class EventsGateway
     });
 
     console.log(
-      `${client.id} connected with char: ${client.data.gameChar}. Total: ${numClients(clients)}`,
+      `[CONNECTED]: ${client.id}, ${gameChar}. Total: ${numClients(clients)}`,
     );
   }
 
@@ -52,7 +51,7 @@ export class EventsGateway
       }
     }
 
-    console.log(`${client.id} disconnected. Total: ${numClients(clients)}`);
+    console.log(`[DISCONNECTED]: ${client.id}. Total: ${numClients(clients)}`);
   }
 
   @SubscribeMessage('events')
@@ -64,7 +63,7 @@ export class EventsGateway
     },
     @ConnectedSocket() client: Socket,
   ): void {
-    console.log(`server received: ${JSON.stringify(data)}, broadcasting...`);
+    console.log(`[EVENTS]: ${JSON.stringify(data)}`);
     this.server.emit('events', {
       squares: data.squares,
       status: data.status,
