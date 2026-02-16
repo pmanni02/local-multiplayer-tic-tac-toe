@@ -1,4 +1,4 @@
-export function GameStatus({ isConnected }: { isConnected: boolean }) {
+export function ConnectionStatus({ isConnected }: { isConnected: boolean }) {
   let connectionStyle: string;
   if (isConnected) {
     connectionStyle = "bg-green-500";

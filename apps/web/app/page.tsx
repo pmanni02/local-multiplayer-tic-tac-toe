@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
-import { GameStatus } from "./game-status";
+import { ConnectionStatus } from "./connection-status";
 import { Board } from "./board";
 import { gameTie, gameWon } from "./game-utils";
 import { ResetGame } from "./game-actions";
@@ -71,30 +71,12 @@ export default function Game() {
     };
   }, []);
 
-  // const click = (index: number): void => {
-  //   if (squares[index] || gameStatus !== "") {
-  //     return;
-  //   }
-
-  //   // update board, emit to all clients
-  //   const squaresCopy: string[] = squares.slice();
-  //   squaresCopy[index] = playerChar;
-
-  //   // emit message
-  //   if (socket) {
-  //     socket.emit("events", {
-  //       squares: squaresCopy,
-  //       status: gameStatus
-  //     });
-  //   }
-  // };
-
   return (
     <>
       <div className="p-40">
         <span className="flex justify-center text-xl text-heading me-3">
           Tic Tac Toe
-          <GameStatus isConnected={isConnected} />
+          <ConnectionStatus isConnected={isConnected} />
         </span>
         <p className="flex justify-center text-black text-l font-bold h-8">
           {gameStatus}
