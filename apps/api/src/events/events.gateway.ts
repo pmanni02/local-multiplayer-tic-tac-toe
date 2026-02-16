@@ -25,16 +25,20 @@ export class EventsGateway
   }
 
   handleConnection(client: Socket) {
-    // TODO: move logic to new service for handling/storing
-    // client specific data
+    clients[client.id] = client;
+
     let gameChar: string;
-    if (numClients(clients) === 0) {
+    if (numClients(clients) <= 1) {
       gameChar = 'X';
     } else {
       gameChar = 'O';
     }
     client.data.gameChar = gameChar;
-    clients[client.id] = client;
+
+    // send playerChar to connected client
+    this.server.to(client.id).emit('setup', {
+      playerChar: gameChar,
+    });
 
     console.log(
       `${client.id} connected with char: ${client.data.gameChar}. Total: ${numClients(clients)}`,
@@ -53,14 +57,15 @@ export class EventsGateway
 
   @SubscribeMessage('events')
   handleEvent(
-    @MessageBody() data: { index: number; char: string },
+    @MessageBody()
+    data: {
+      squares: string[];
+    },
     @ConnectedSocket() client: Socket,
   ): void {
     console.log(`server received: ${JSON.stringify(data)}, broadcasting...`);
     this.server.emit('events', {
-      index: data.index,
-      char: data.char,
-      senderSocketId: client.id,
+      squares: data.squares,
     });
   }
 }

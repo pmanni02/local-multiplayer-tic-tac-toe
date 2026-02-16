@@ -4,7 +4,7 @@ import io, { Socket } from "socket.io-client";
 import { Square } from "./square";
 
 export default function Board() {
-  const [playerChar, setPlayerChar] = useState<"X" | "O">("X");
+  const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [gameStatus, setGameStatus] = useState("");
 
@@ -12,11 +12,9 @@ export default function Board() {
   const [isConnected, setIsConnected] = useState(false);
   const [transport, setTransport] = useState("N/A");
 
-  // SOURCE: https://socket.io/how-to/use-with-nextjs
   useEffect(() => {
     // connect to NestJS websocket server
     const socket = io("http://localhost:3001");
-    setSocket(socket);
 
     function onConnect() {
       if (socket) {
@@ -40,33 +38,34 @@ export default function Board() {
     }
 
     function onEvents(myObj: {
-      index: number;
-      char: string;
-      senderSocketId: string;
+      squares: string[];
     }) {
-      console.log(`curSocketId`, socket.id);
-      console.log(`senderSocketId: ${myObj.senderSocketId}`);
-      console.log(`Client received: ${JSON.stringify(myObj)}`);
+      setSquares(myObj.squares);
 
-      // only update frontend if message received was from another client
-      if (socket.id && socket.id !== myObj.senderSocketId) {
-        const squaresCopy: string[] = squares.slice();
+      if (gameWon(myObj.squares)) {
+        setGameStatus("WINNER!");
+      } else if (gameTie(myObj.squares)) {
+        setGameStatus("TIE!");
+      }
+    }
 
-        squaresCopy[myObj.index] = playerChar;
-        console.log("squaresCopy", squaresCopy);
-
-        setSquares(squaresCopy);
+    function onSetup(myObj: {
+      playerChar: string
+    }) {
+      console.log(`client player char: ${myObj.playerChar}`)
+      if (myObj.playerChar === 'X' || myObj.playerChar === 'O') {
+        setPlayerChar(myObj.playerChar)
       }
     }
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("events", onEvents);
+    socket.on("setup", onSetup);
+
+    setSocket(socket);
 
     return () => {
-      // socket.off("connect", onConnect);
-      // socket.off("disconnect", onDisconnect);
-      // socket.off("events", onEvents)
       socket.disconnect();
     };
   }, []);
@@ -76,25 +75,14 @@ export default function Board() {
       return;
     }
 
-    // emit message
-    if (socket) {
-      socket.emit("events", { index, char: playerChar });
-    }
-
     const squaresCopy: string[] = squares.slice();
     squaresCopy[index] = playerChar;
-    setSquares(squaresCopy);
 
-    if (gameWon(squaresCopy)) {
-      setGameStatus("WINNER!");
-    } else if (gameTie(squaresCopy)) {
-      setGameStatus("TIE!");
-    }
-
-    if (playerChar === "X") {
-      setPlayerChar("O");
-    } else {
-      setPlayerChar("X");
+    // emit message
+    if (socket) {
+      socket.emit("events", {
+        squares: squaresCopy,
+      });
     }
   };
 
