@@ -1,4 +1,5 @@
 import { Square } from "./square";
+
 export function Board({
   squares,
   squareClickFn
