@@ -8,13 +8,12 @@ import { ResetGame } from "./game-actions";
 
 export default function Game() {
   const [socket, setSocket] = useState<null | Socket>();
-
-  const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
-  const [squares, setSquares] = useState(Array(9).fill(""));
-  const [gameStatus, setGameStatus] = useState("");
-  // const [isPlayerTurn, setIsPlayerTurn] = useState(false);
-
   const [isConnected, setIsConnected] = useState(false);
+
+  const [squares, setSquares] = useState(Array(9).fill(""));
+  const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
+  const [gameEvents, setGameEvents] = useState<{ squares: string[]; status: string; }[]>([])
+  const [gameStatus, setGameStatus] = useState("");
 
   useEffect(() => {
     // connect to NestJS websocket server
@@ -25,21 +24,18 @@ export default function Game() {
         setIsConnected(true);
 
         // TEMP
-        socket.io.engine.on("upgrade", (transport) => {
-          console.log(`upgraded to: ${transport.name}`);
-        });
+        // socket.io.engine.on("upgrade", (transport) => {
+        //   console.log(`upgraded to: ${transport.name}`);
+        // });
 
         console.log(`[CONNECT]: ${socket.id}`);
       }
     }
 
-    function onSetup(myObj: { playerChar: string }) {
-      console.log(`client player char: ${myObj.playerChar}`);
+    function onSetup(myObj: { playerChar: string, isPlayerTurn: boolean }) {
+      console.log(`[SETUP]: player char: ${myObj.playerChar}`);
       if (myObj.playerChar === "X" || myObj.playerChar === "O") {
         setPlayerChar(myObj.playerChar);
-        // if(myObj.playerChar === 'X') {
-        //   setIsPlayerTurn(true);
-        // }
       }
     }
 
@@ -48,7 +44,7 @@ export default function Game() {
       console.log(`[DISCONNECT]`);
     }
 
-    function onEvents(myObj: { squares: string[]; status: string }) {
+    function onEvents(myObj: { squares: string[]; status: string; }) {
       setSquares(myObj.squares);
       setGameStatus(myObj.status);
 

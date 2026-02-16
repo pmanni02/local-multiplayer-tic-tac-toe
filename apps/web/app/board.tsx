@@ -8,14 +8,20 @@ export function Board({
   playerChar,
   socket,
 }: {
-  squares: ("X" | "O")[];
+  squares: ("" | "X" | "O")[];
   gameStatus: string;
   playerChar: string;
   socket: Nullable<Socket>;
 }) {
   const click = (index: number): void => {
+    const numNonEmptySquares = squares.filter(x => x !== '').length
     if (squares[index] || gameStatus !== "") {
       return;
+    } else if (
+      numNonEmptySquares % 2 === 0 && playerChar === 'O' ||
+      numNonEmptySquares % 2 !== 0 && playerChar === 'X'
+    ) {
+      return
     }
 
     // update board, emit to all clients
@@ -30,6 +36,7 @@ export function Board({
       });
     }
   };
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
