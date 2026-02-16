@@ -2,15 +2,17 @@
 import { useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { Square } from "./square";
+import { GameStatus } from "./game-status";
 
 export default function Board() {
+  const [socket, setSocket] = useState<null | Socket>();
+
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [gameStatus, setGameStatus] = useState("");
+  // const [isPlayerTurn, setIsPlayerTurn] = useState(false);
 
-  const [socket, setSocket] = useState<null | Socket>();
   const [isConnected, setIsConnected] = useState(false);
-  const [transport, setTransport] = useState("N/A");
 
   useEffect(() => {
     // connect to NestJS websocket server
@@ -19,11 +21,10 @@ export default function Board() {
     function onConnect() {
       if (socket) {
         setIsConnected(true);
-        setTransport(socket.io.engine.transport.name);
 
-        // upgrade connection to websocket
+        // TEMP
         socket.io.engine.on("upgrade", (transport) => {
-          setTransport(transport.name);
+          console.log(`upgraded to: ${transport.name}`)
         });
 
         console.log(`[CONNECT]: ${socket.id}`);
@@ -36,13 +37,14 @@ export default function Board() {
       console.log(`client player char: ${myObj.playerChar}`)
       if (myObj.playerChar === 'X' || myObj.playerChar === 'O') {
         setPlayerChar(myObj.playerChar)
+        // if(myObj.playerChar === 'X') {
+        //   setIsPlayerTurn(true);
+        // }
       }
     }
 
     function onDisconnect() {
       setIsConnected(false);
-      setTransport("N/A");
-
       console.log(`[DISCONNECT]`);
     }
 
@@ -141,7 +143,10 @@ export default function Board() {
   return (
     <>
       <div className="p-40">
-        <h2 className="flex justify-center text-xl">Tic Tac Toe</h2>
+        <span className="flex justify-center text-xl text-heading me-3">
+          Tic Tac Toe
+          <GameStatus isConnected={isConnected} />
+        </span>
         <p className="flex justify-center text-black text-l font-bold h-8">
           {gameStatus}
         </p>
@@ -171,10 +176,6 @@ export default function Board() {
             Reset
           </button>
         </div>
-        <p className="flex justify-center">
-          Connection: {isConnected ? "connected" : "disconnected"}
-        </p>
-        <p className="flex justify-center">Transport: {transport}</p>
       </div>
     </>
   );
