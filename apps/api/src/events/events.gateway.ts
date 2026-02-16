@@ -60,12 +60,14 @@ export class EventsGateway
     @MessageBody()
     data: {
       squares: string[];
+      status: string;
     },
     @ConnectedSocket() client: Socket,
   ): void {
     console.log(`server received: ${JSON.stringify(data)}, broadcasting...`);
     this.server.emit('events', {
       squares: data.squares,
+      status: data.status,
     });
   }
 }

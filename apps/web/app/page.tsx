@@ -39,8 +39,10 @@ export default function Board() {
 
     function onEvents(myObj: {
       squares: string[];
+      status: string;
     }) {
       setSquares(myObj.squares);
+      setGameStatus(myObj.status);
 
       if (gameWon(myObj.squares)) {
         setGameStatus("WINNER!");
@@ -82,6 +84,7 @@ export default function Board() {
     if (socket) {
       socket.emit("events", {
         squares: squaresCopy,
+        status: gameStatus
       });
     }
   };
@@ -126,8 +129,12 @@ export default function Board() {
 
   const resetSquares = () => {
     const newSquares = Array(9).fill("");
-    setSquares(newSquares);
-    setGameStatus("");
+    if (socket) {
+      socket.emit("events", {
+        squares: newSquares,
+        status: ""
+      });
+    }
   };
 
   return (
