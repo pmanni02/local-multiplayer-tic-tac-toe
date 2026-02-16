@@ -1,29 +1,52 @@
+import { Socket } from "socket.io-client";
 import { Square } from "./square";
+import { Nullable } from "../global";
 
 export function Board({
   squares,
-  squareClickFn
+  gameStatus,
+  playerChar,
+  socket,
 }: {
   squares: ("X" | "O")[];
-  squareClickFn: (val: number) => void
+  gameStatus: string;
+  playerChar: string;
+  socket: Nullable<Socket>;
 }) {
+  const click = (index: number): void => {
+    if (squares[index] || gameStatus !== "") {
+      return;
+    }
+
+    // update board, emit to all clients
+    const squaresCopy: string[] = squares.slice();
+    squaresCopy[index] = playerChar;
+
+    // emit message
+    if (socket) {
+      socket.emit("events", {
+        squares: squaresCopy,
+        status: gameStatus,
+      });
+    }
+  };
   return (
     <div className="flex flex-col">
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-        <Square value={squares[0]!} onClickFn={() => squareClickFn(0)} />
-        <Square value={squares[1]!} onClickFn={() => squareClickFn(1)} />
-        <Square value={squares[2]!} onClickFn={() => squareClickFn(2)} />
+        <Square value={squares[0]!} onClickFn={() => click(0)} />
+        <Square value={squares[1]!} onClickFn={() => click(1)} />
+        <Square value={squares[2]!} onClickFn={() => click(2)} />
       </div>
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-        <Square value={squares[3]!} onClickFn={() => squareClickFn(3)} />
-        <Square value={squares[4]!} onClickFn={() => squareClickFn(4)} />
-        <Square value={squares[5]!} onClickFn={() => squareClickFn(5)} />
+        <Square value={squares[3]!} onClickFn={() => click(3)} />
+        <Square value={squares[4]!} onClickFn={() => click(4)} />
+        <Square value={squares[5]!} onClickFn={() => click(5)} />
       </div>
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-        <Square value={squares[6]!} onClickFn={() => squareClickFn(6)} />
-        <Square value={squares[7]!} onClickFn={() => squareClickFn(7)} />
-        <Square value={squares[8]!} onClickFn={() => squareClickFn(8)} />
+        <Square value={squares[6]!} onClickFn={() => click(6)} />
+        <Square value={squares[7]!} onClickFn={() => click(7)} />
+        <Square value={squares[8]!} onClickFn={() => click(8)} />
       </div>
     </div>
-  )
+  );
 }

@@ -4,6 +4,7 @@ import io, { Socket } from "socket.io-client";
 import { GameStatus } from "./game-status";
 import { Board } from "./board";
 import { gameTie, gameWon } from "./game-utils";
+import { ResetGame } from "./game-actions";
 
 export default function Game() {
   const [socket, setSocket] = useState<null | Socket>();
@@ -25,19 +26,17 @@ export default function Game() {
 
         // TEMP
         socket.io.engine.on("upgrade", (transport) => {
-          console.log(`upgraded to: ${transport.name}`)
+          console.log(`upgraded to: ${transport.name}`);
         });
 
         console.log(`[CONNECT]: ${socket.id}`);
       }
     }
 
-    function onSetup(myObj: {
-      playerChar: string
-    }) {
-      console.log(`client player char: ${myObj.playerChar}`)
-      if (myObj.playerChar === 'X' || myObj.playerChar === 'O') {
-        setPlayerChar(myObj.playerChar)
+    function onSetup(myObj: { playerChar: string }) {
+      console.log(`client player char: ${myObj.playerChar}`);
+      if (myObj.playerChar === "X" || myObj.playerChar === "O") {
+        setPlayerChar(myObj.playerChar);
         // if(myObj.playerChar === 'X') {
         //   setIsPlayerTurn(true);
         // }
@@ -49,10 +48,7 @@ export default function Game() {
       console.log(`[DISCONNECT]`);
     }
 
-    function onEvents(myObj: {
-      squares: string[];
-      status: string;
-    }) {
+    function onEvents(myObj: { squares: string[]; status: string }) {
       setSquares(myObj.squares);
       setGameStatus(myObj.status);
 
@@ -75,33 +71,23 @@ export default function Game() {
     };
   }, []);
 
-  const click = (index: number): void => {
-    if (squares[index] || gameStatus !== "") {
-      return;
-    }
+  // const click = (index: number): void => {
+  //   if (squares[index] || gameStatus !== "") {
+  //     return;
+  //   }
 
-    // update board, emit to all clients
-    const squaresCopy: string[] = squares.slice();
-    squaresCopy[index] = playerChar;
+  //   // update board, emit to all clients
+  //   const squaresCopy: string[] = squares.slice();
+  //   squaresCopy[index] = playerChar;
 
-    // emit message
-    if (socket) {
-      socket.emit("events", {
-        squares: squaresCopy,
-        status: gameStatus
-      });
-    }
-  };
-
-  const resetSquares = () => {
-    const newSquares = Array(9).fill("");
-    if (socket) {
-      socket.emit("events", {
-        squares: newSquares,
-        status: ""
-      });
-    }
-  };
+  //   // emit message
+  //   if (socket) {
+  //     socket.emit("events", {
+  //       squares: squaresCopy,
+  //       status: gameStatus
+  //     });
+  //   }
+  // };
 
   return (
     <>
@@ -113,16 +99,13 @@ export default function Game() {
         <p className="flex justify-center text-black text-l font-bold h-8">
           {gameStatus}
         </p>
-        <Board squares={squares} squareClickFn={click} />
-        <div className="flex flex-row justify-center p-[2px]">
-          <button
-            type="button"
-            className="text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
-            onClick={() => resetSquares()}
-          >
-            Reset
-          </button>
-        </div>
+        <Board
+          squares={squares}
+          gameStatus={gameStatus}
+          playerChar={playerChar}
+          socket={socket}
+        />
+        <ResetGame socket={socket} />
       </div>
     </>
   );
