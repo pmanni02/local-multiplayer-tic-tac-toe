@@ -14,18 +14,17 @@ export function Board({
   playerChar: string;
   socket: Nullable<Socket>;
 }) {
+  const numNonEmptySquares = squares.filter((x) => x !== "").length;
+  const isWrongTurn = (numNonEmptySquares % 2 === 0 && playerChar === "O") ||
+    (numNonEmptySquares % 2 !== 0 && playerChar === "X")
+
   const click = (index: number): void => {
-    const numNonEmptySquares = squares.filter((x) => x !== "").length;
     if (squares[index] || gameStatus === WINNER) {
       return;
-    } else if (
-      (numNonEmptySquares % 2 === 0 && playerChar === "O") ||
-      (numNonEmptySquares % 2 !== 0 && playerChar === "X")
-    ) {
+    } else if (isWrongTurn) {
       return;
     }
 
-    // update board, emit to all clients
     const squaresCopy: string[] = squares.slice();
     squaresCopy[index] = playerChar;
 
@@ -42,19 +41,19 @@ export function Board({
   return (
     <div className="flex flex-col bg-black">
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-        <Square value={squares[0]!} onClickFn={() => click(0)} />
-        <Square value={squares[1]!} onClickFn={() => click(1)} />
-        <Square value={squares[2]!} onClickFn={() => click(2)} />
+        <Square value={squares[0]!} onClickFn={() => click(0)} isWrongTurn={isWrongTurn} />
+        <Square value={squares[1]!} onClickFn={() => click(1)} isWrongTurn={isWrongTurn} />
+        <Square value={squares[2]!} onClickFn={() => click(2)} isWrongTurn={isWrongTurn} />
       </div>
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-        <Square value={squares[3]!} onClickFn={() => click(3)} />
-        <Square value={squares[4]!} onClickFn={() => click(4)} />
-        <Square value={squares[5]!} onClickFn={() => click(5)} />
+        <Square value={squares[3]!} onClickFn={() => click(3)} isWrongTurn={isWrongTurn} />
+        <Square value={squares[4]!} onClickFn={() => click(4)} isWrongTurn={isWrongTurn} />
+        <Square value={squares[5]!} onClickFn={() => click(5)} isWrongTurn={isWrongTurn} />
       </div>
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
-        <Square value={squares[6]!} onClickFn={() => click(6)} />
-        <Square value={squares[7]!} onClickFn={() => click(7)} />
-        <Square value={squares[8]!} onClickFn={() => click(8)} />
+        <Square value={squares[6]!} onClickFn={() => click(6)} isWrongTurn={isWrongTurn} />
+        <Square value={squares[7]!} onClickFn={() => click(7)} isWrongTurn={isWrongTurn} />
+        <Square value={squares[8]!} onClickFn={() => click(8)} isWrongTurn={isWrongTurn} />
       </div>
     </div>
   );
