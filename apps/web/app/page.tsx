@@ -76,19 +76,21 @@ export default function Game() {
 
   return (
     <>
-      <div className="flex flex-col p-40">
-        <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading rounded-t-xs">
-          Tic Tac Toe
-          <ConnectionStatus isConnected={isConnected} />
-        </span>
-        <Board
-          squares={squares}
-          gameStatus={gameStatus}
-          playerChar={playerChar}
-          socket={socket}
-        />
-        <GameInfo playerChar={playerChar} gameStatus={gameStatus} />
-        <ResetGame socket={socket} />
+      <div className="flex justify-center content-center max-h-screen mt-30">
+        <div className="flex flex-col size-110">
+          <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading rounded-t-xs">
+            Tic Tac Toe
+            <ConnectionStatus isConnected={isConnected} />
+          </span>
+          <Board
+            squares={squares}
+            gameStatus={gameStatus}
+            playerChar={playerChar}
+            socket={socket}
+          />
+          <GameInfo playerChar={playerChar} gameStatus={gameStatus} />
+          <ResetGame socket={socket} />
+        </div>
       </div>
     </>
   );
