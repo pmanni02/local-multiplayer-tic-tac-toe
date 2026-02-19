@@ -1,5 +1,5 @@
 import { Socket } from "socket.io-client";
-import { Nullable } from "../global";
+import { Nullable } from "../../global";
 
 const resetSquares = (socket: Socket) => {
   const newSquares = Array(9).fill("");

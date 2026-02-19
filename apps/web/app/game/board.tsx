@@ -1,6 +1,6 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
-import { Nullable } from "../global";
+import { Nullable } from "../../global";
 import { WINNER } from "./page";
 
 export function Board({
