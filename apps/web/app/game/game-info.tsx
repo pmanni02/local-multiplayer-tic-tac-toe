@@ -11,7 +11,9 @@ export function GameInfo({
         <p className="items-center text-white text-m">Player: {playerChar}</p>
       </div>
       <div>
-        <p className="items-center text-white text-m">Current Turn: {gameStatus}</p>
+        <p className="items-center text-white text-m">
+          Current Turn: {gameStatus}
+        </p>
       </div>
     </div>
   );
