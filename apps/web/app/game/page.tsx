@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { ConnectionStatus } from "./connection-status";
 import { gameTie, gameWon } from "../game-utils";
-import { ResetGame } from "./game-actions";
+import { ResetGame } from "./reset-game";
 import { Board } from "./board";
 import { GameInfo } from "./game-info";
 
