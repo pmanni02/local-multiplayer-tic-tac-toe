@@ -14,7 +14,9 @@ export function Square({
     O: "text-blue-500",
   };
   const color = value ? textStyles[value] : "";
-  const transitionStyle = isWrongTurn ? `transition-colors delay-175 duration-100 ease-in hover:border-red-600/30` : ""
+  const transitionStyle = isWrongTurn
+    ? `transition-colors delay-175 duration-100 ease-in hover:border-red-600/30`
+    : "";
   return (
     <div>
       <button

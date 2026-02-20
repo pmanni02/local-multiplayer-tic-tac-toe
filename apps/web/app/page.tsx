@@ -1,96 +1,100 @@
 "use client";
-import { useEffect, useState } from "react";
-import io, { Socket } from "socket.io-client";
-import { ConnectionStatus } from "./connection-status";
-import { Board } from "./board";
-import { gameTie, gameWon } from "./game-utils";
-import { ResetGame } from "./game-actions";
-import { GameInfo } from "./game-info";
+import React, { useState } from "react";
+import { SingleValue } from 'react-select'
+import { StartGameButton } from "./start-game-button";
+import { ReactSelectOption } from "../global";
+import { SelectDropDown } from "./select";
 
-export const WINNER = "WINNER!";
-export const TIE = "TIE!";
+// TODO: style page
 
-export default function Game() {
-  const [socket, setSocket] = useState<null | Socket>();
-  const [isConnected, setIsConnected] = useState(false);
+const gameTypeOptions: ReactSelectOption[] = [
+  { value: 'regular', label: 'regular' },
+  { value: 'ultimate', label: 'ultimate' }
+]
 
-  const [squares, setSquares] = useState(Array(9).fill(""));
-  const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
-  // const [gameEvents, setGameEvents] = useState<{ squares: string[]; status: string; }[]>([])
-  const [gameStatus, setGameStatus] = useState("");
+const defaultGameTypeOption: ReactSelectOption = { value: 'regular', label: 'regular' }
+const defaultRoomOption: ReactSelectOption = { value: 'room1', label: 'room1' }
 
-  useEffect(() => {
-    // connect to NestJS websocket server
-    const socket = io("http://localhost:3001");
+export default function Page() {
+  const [rooms, setRooms] = useState<string[]>([]);
 
-    function onConnect() {
-      if (socket) {
-        setIsConnected(true);
-        console.log(`[CONNECT]: ${socket.id}`);
-      }
+  const [roomOptions, setRoomOptions] = useState<ReactSelectOption[]>([defaultRoomOption])
+  const [selectedRoomOption, setSelectedRoomOption] = useState<ReactSelectOption>(defaultRoomOption)
+  const [selectedGameTypeOption, setSelectedGameTypeOption] = useState<ReactSelectOption>(defaultGameTypeOption)
+
+  const handleGameTypeChange = (selectedOption: SingleValue<ReactSelectOption> | null) => {
+    if (selectedOption) {
+      setSelectedGameTypeOption(selectedOption)
     }
+  }
 
-    function onSetup(myObj: { playerChar: string; isPlayerTurn: boolean }) {
-      console.log(`[SETUP]: player char: ${myObj.playerChar}`);
-      if (myObj.playerChar === "X" || myObj.playerChar === "O") {
-        setPlayerChar(myObj.playerChar);
-
-        // default first player to client with 'X' playerChar
-        setGameStatus(`X`);
-      }
+  const handleRoomNameChange = (selectedOption: SingleValue<ReactSelectOption> | null) => {
+    // TODO: add validation for room names
+    if (selectedOption) {
+      setSelectedRoomOption(selectedOption)
     }
-
-    function onDisconnect() {
-      setIsConnected(false);
-      console.log(`[DISCONNECT]`);
-    }
-
-    function onEvents(myObj: {
-      squares: string[];
-      status: string;
-      currentPlayer: string;
-    }) {
-      setSquares(myObj.squares);
-      setGameStatus(myObj.status);
-
-      if (gameWon(myObj.squares)) {
-        setGameStatus(WINNER);
-      } else if (gameTie(myObj.squares)) {
-        setGameStatus(TIE);
-      } else {
-        setGameStatus(myObj.currentPlayer);
-      }
-    }
-
-    socket.on("connect", onConnect);
-    socket.on("setup", onSetup);
-    socket.on("disconnect", onDisconnect);
-    socket.on("events", onEvents);
-
-    setSocket(socket);
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+  }
 
   return (
     <>
-      <div className="flex justify-center content-center max-h-screen mt-30">
-        <div className="flex flex-col size-110">
-          <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading rounded-t-xs">
-            Tic Tac Toe
-            <ConnectionStatus isConnected={isConnected} />
-          </span>
-          <Board
-            squares={squares}
-            gameStatus={gameStatus}
-            playerChar={playerChar}
-            socket={socket}
+      <h1 className="text-3xl">Tic Tac Toe</h1>
+      <div className="flex flex-col w-120">
+        {/* SELECT MENUS */}
+        <div className="flex flex-row gap-y-4">
+          {/* GAME TYPE */}
+          <SelectDropDown
+            selectedOption={selectedGameTypeOption}
+            allOptions={gameTypeOptions}
+            handleOptionChange={handleGameTypeChange}
+            classDescption=""
           />
-          <GameInfo playerChar={playerChar} gameStatus={gameStatus} />
-          <ResetGame socket={socket} />
+
+          {/* ROOM(S) */}
+          <SelectDropDown
+            selectedOption={selectedRoomOption}
+            allOptions={roomOptions}
+            handleOptionChange={handleRoomNameChange}
+            classDescption=""
+          />
+
+          {/* ADD NEW ROOM */}
+          {/* TODO: breakout room input into separate component */}
+          <div id="addRoomForm" className="flex flex-col">
+            <form
+              className="flex flex-col"
+              id="roomInput"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const target = e.target as typeof e.target & {
+                  addRoom: { value: string }
+                };
+                const newRoom = target.addRoom.value;
+                console.log('newRoom', newRoom)
+
+                const roomOptionsCopy = roomOptions.slice()
+                roomOptionsCopy.push({ value: `${newRoom}`, label: `${newRoom}` })
+
+                const roomsCopy = rooms.slice()
+                if (!roomsCopy.includes(newRoom)) {
+                  const myRooms = [...rooms, newRoom]
+                  setRoomOptions(roomOptionsCopy);
+                  setRooms(myRooms)
+                }
+
+                const form = document.getElementById('roomInput') as HTMLFormElement
+                form.reset()
+              }}>
+              <input
+                name="addRoom"
+                className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
+                placeholder="Add room name..."
+              />
+              <p className="flex label text-xs justify-end-safe text-slate-500/50">Press Enter</p>
+            </form>
+          </div>
         </div>
+
+        <StartGameButton gameType={selectedGameTypeOption?.value} roomName={selectedRoomOption?.value} />
       </div>
     </>
   );

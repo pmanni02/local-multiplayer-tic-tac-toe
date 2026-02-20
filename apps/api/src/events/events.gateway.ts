@@ -23,35 +23,35 @@ export class EventsGateway
     console.log('Websocket server initialized!');
   }
 
-  handleConnection(client: Socket) {
+  handleConnection(socket: Socket) {
     if (
       numPlayers() === 0 ||
       (numPlayers() === 1 && Object.entries(players)[0][1] !== 'X')
     ) {
-      players[client.id] = 'X';
+      players[socket.id] = 'X';
     } else {
-      players[client.id] = 'O';
+      players[socket.id] = 'O';
     }
-    const gameChar = players[client.id];
+    const gameChar = players[socket.id];
 
-    // send playerChar to connected client
-    this.server.to(client.id).emit('setup', {
+    // send playerChar to connected socket
+    this.server.to(socket.id).emit('setup', {
       playerChar: gameChar,
     });
 
     console.log(
-      `[CONNECTED]: ${client.id}, ${gameChar}. Total: ${numPlayers()}`,
+      `[CONNECTED]: ${socket.id}, ${gameChar}. Total: ${numPlayers()}`,
     );
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(socket: Socket) {
     for (const [key] of Object.entries(players)) {
-      if (key === client.id) {
+      if (key === socket.id) {
         delete players[key];
       }
     }
 
-    console.log(`[DISCONNECTED]: ${client.id}. Total: ${numPlayers()}`);
+    console.log(`[DISCONNECTED]: ${socket.id}. Total: ${numPlayers()}`);
   }
 
   @SubscribeMessage('events')
@@ -62,7 +62,7 @@ export class EventsGateway
       status: string;
       currentPlayer: string;
     },
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() socket: Socket,
   ): void {
     console.log(`[EVENTS]: ${JSON.stringify(data)}`);
     this.server.emit('events', {

@@ -1,5 +1,5 @@
 import { Socket } from "socket.io-client";
-import { Nullable } from "../global";
+import { Nullable } from "../../global";
 
 const resetSquares = (socket: Socket) => {
   const newSquares = Array(9).fill("");
@@ -12,7 +12,7 @@ const resetSquares = (socket: Socket) => {
   }
 };
 
-export function ResetGame({ socket }: { socket: Nullable<Socket> }) {
+export function ResetGameButton({ socket }: { socket: Nullable<Socket> }) {
   return (
     <div className="flex flex-row justify-center p-[2px]">
       <button

@@ -1,7 +1,9 @@
 import { Socket } from "socket.io-client";
-import { Square } from "./square";
+
 import { Nullable } from "../global";
-import { WINNER } from "./page";
+import { WINNER } from "./game/page";
+import { Square } from "./game/square";
+// import { WINNER } from "./page";
 
 export function Board({
   squares,
