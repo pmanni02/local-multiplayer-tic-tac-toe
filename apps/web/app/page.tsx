@@ -2,30 +2,33 @@
 import React, { useState } from "react";
 import { SingleValue } from 'react-select'
 import { StartGameButton } from "./start-game-button";
-import { OptionType } from "../global";
+import { ReactSelectOption } from "../global";
 import { SelectDropDown } from "./select";
 
 // TODO: style page
 
-const gameTypeOptions: OptionType[] = [
+const gameTypeOptions: ReactSelectOption[] = [
   { value: 'regular', label: 'regular' },
   { value: 'ultimate', label: 'ultimate' }
 ]
 
+const defaultRoomOption: ReactSelectOption = { value: 'room1', label: 'room1' }
+
 export default function Page() {
   const [rooms, setRooms] = useState<string[]>([]);
 
-  const [roomOptions, setRoomOptions] = useState<OptionType[]>([])
-  const [selectedRoomOption, setSelectedRoomOption] = useState<OptionType>()
-  const [selectedGameTypeOption, setSelectedGameTypeOption] = useState<OptionType>()
+  const [roomOptions, setRoomOptions] = useState<ReactSelectOption[]>([defaultRoomOption])
+  const [selectedRoomOption, setSelectedRoomOption] = useState<ReactSelectOption>(defaultRoomOption)
+  const [selectedGameTypeOption, setSelectedGameTypeOption] = useState<ReactSelectOption>()
 
-  const handleGameTypeChange = (selectedOption: SingleValue<OptionType> | null) => {
+  const handleGameTypeChange = (selectedOption: SingleValue<ReactSelectOption> | null) => {
     if (selectedOption) {
       setSelectedGameTypeOption(selectedOption)
     }
   }
 
-  const handleRoomNameChange = (selectedOption: SingleValue<OptionType> | null) => {
+  const handleRoomNameChange = (selectedOption: SingleValue<ReactSelectOption> | null) => {
+    // TODO: add validation for room names
     if (selectedOption) {
       setSelectedRoomOption(selectedOption)
     }
@@ -55,7 +58,7 @@ export default function Page() {
 
           {/* ADD NEW ROOM */}
           {/* TODO: breakout room input into separate component */}
-          <div className="flex flex-col">
+          <div id="addRoomForm" className="flex flex-col">
             <form
               className="flex flex-col"
               id="roomInput"
