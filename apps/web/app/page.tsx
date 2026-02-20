@@ -2,11 +2,8 @@
 import React, { useId, useState } from "react";
 import Select, { SingleValue } from 'react-select'
 import { StartGameButton } from "./start-game-button";
-
-interface OptionType {
-  value: string;
-  label: string;
-}
+import { OptionType } from "../global";
+import { SelectDropDown } from "./select";
 
 const gameTypeOptions: OptionType[] = [
   { value: 'regular', label: 'regular' },
@@ -39,26 +36,20 @@ export default function Page() {
         {/* SELECT MENUS */}
         <div className="flex flex-row gap-y-4">
           {/* GAME TYPE */}
-          <div className="">
-            <Select
-              value={selectedGameTypeOption}
-              options={gameTypeOptions}
-              onChange={handleGameTypeChange}
-              isClearable
-              instanceId={useId()} // added to prevent hydration error
-            />
-          </div>
+          <SelectDropDown
+            selectedOption={selectedGameTypeOption}
+            allOptions={gameTypeOptions}
+            handleOptionChange={handleGameTypeChange}
+            classDescption=""
+          />
 
           {/* ROOM(S) */}
-          <div className="">
-            <Select
-              value={selectedRoomOption}
-              options={roomOptions}
-              onChange={handleRoomNameChange}
-              isClearable
-              instanceId={useId()} // added to prevent hydration error
-            />
-          </div>
+          <SelectDropDown
+            selectedOption={selectedRoomOption}
+            allOptions={roomOptions}
+            handleOptionChange={handleRoomNameChange}
+            classDescption=""
+          />
 
           {/* ADD NEW ROOM */}
           <div className="flex flex-col">
