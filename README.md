@@ -1,13 +1,16 @@
 ## Goal
+
 The goal of this project is to gain experience working with websockets (socket.io), React components, and Turborepo in a single project.
 
 To do this I merged concepts/logic from two previous projects:
+
 - NestJS based basic chat app (websockets)
 - NextJS based single player tic-tac-toe (React)
 
 into a multiplayer tic-tac-toe game (Turborepo)
 
 ## Preview
+
 https://github.com/user-attachments/assets/a0fd5b21-53e5-48a5-9d9e-dad2fa269006
 
 ## What's inside?

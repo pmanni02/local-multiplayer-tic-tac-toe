@@ -16,21 +16,27 @@ export default function Game() {
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
-  const [currentRoom, setCurrentRoom] = useState("")
+  const [currentRoom, setCurrentRoom] = useState("");
   const [gameStatus, setGameStatus] = useState("");
 
   useEffect(() => {
     if (socket) {
-      setIsConnected(true)
+      setIsConnected(true);
 
       // get player character, room
-      socket.emit("playerConnected", {})
+      socket.emit("playerConnected", {});
 
-      function onSetup({ playerCharacter, room }: { playerCharacter: string; room: string }) {
+      function onSetup({
+        playerCharacter,
+        room,
+      }: {
+        playerCharacter: string;
+        room: string;
+      }) {
         console.log(`[SETUP]: player char: ${playerCharacter}, room: ${room}`);
         if (playerCharacter === "X" || playerCharacter === "O") {
           setPlayerChar(playerCharacter);
-          setCurrentRoom(room)
+          setCurrentRoom(room);
 
           // default first turn to client with 'X' playerChar
           setGameStatus(`X`);
@@ -63,9 +69,9 @@ export default function Game() {
     }
 
     return () => {
-      socket?.off("setup")
-      socket?.off("events")
-    }
+      socket?.off("setup");
+      socket?.off("events");
+    };
   }, [socket]);
 
   return (

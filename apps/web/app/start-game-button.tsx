@@ -12,10 +12,8 @@ export function StartGameButton({ gameType }: { gameType: Nullable<string> }) {
           Start!
         </Link>
       </div>
-    )
+    );
   } else {
-    return (
-      <></>
-    )
+    return <></>;
   }
 }

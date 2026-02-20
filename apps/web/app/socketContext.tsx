@@ -1,9 +1,15 @@
-'use client'
+"use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { io, Socket } from "socket.io-client"
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { io, Socket } from "socket.io-client";
 
-const SocketContext = createContext<Socket | null | undefined>(undefined)
+const SocketContext = createContext<Socket | null | undefined>(undefined);
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<null | Socket>(null);
@@ -33,19 +39,17 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         newSocket.disconnect();
       };
     }
-  }, [])
+  }, []);
 
   return (
-    <SocketContext.Provider value={socket}>
-      {children}
-    </SocketContext.Provider>
-  )
-}
+    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+  );
+};
 
 export const useSocket = (): Socket | null | undefined => {
   const context = useContext(SocketContext);
   if (context === undefined) {
-    throw new Error("useSocket must be made within a SocketProvider")
+    throw new Error("useSocket must be made within a SocketProvider");
   }
-  return context
-}
+  return context;
+};

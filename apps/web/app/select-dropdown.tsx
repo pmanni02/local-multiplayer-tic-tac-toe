@@ -1,22 +1,24 @@
 import { useId } from "react";
-import Select, { SingleValue } from 'react-select'
-import { Nullable, ReactSelectOption,  } from "../global";
+import Select, { SingleValue } from "react-select";
+import { Nullable, ReactSelectOption } from "../global";
 
 export function SelectDropDown({
   defaultValue,
   selectedOption,
   allOptions,
   handleOptionChange,
-  classDescption,
+  classDescription,
 }: {
-  defaultValue?: Nullable<ReactSelectOption>
-  selectedOption: Nullable<ReactSelectOption>,
-  allOptions: ReactSelectOption[],
-  handleOptionChange: (selectedOption: SingleValue<ReactSelectOption> | null) => void
-  classDescption: string
+  defaultValue?: Nullable<ReactSelectOption>;
+  selectedOption: Nullable<ReactSelectOption>;
+  allOptions: ReactSelectOption[];
+  handleOptionChange: (
+    selectedOption: SingleValue<ReactSelectOption> | null,
+  ) => void;
+  classDescription: string;
 }) {
   return (
-    <div className={classDescption}>
+    <div className={classDescription}>
       <Select
         defaultValue={defaultValue}
         value={selectedOption}
@@ -26,5 +28,5 @@ export function SelectDropDown({
         instanceId={useId()} // added to prevent hydration error
       />
     </div>
-  )
+  );
 }
