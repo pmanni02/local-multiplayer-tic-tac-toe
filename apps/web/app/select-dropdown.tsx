@@ -3,13 +3,13 @@ import Select, { SingleValue } from 'react-select'
 import { Nullable, ReactSelectOption,  } from "../global";
 
 export function SelectDropDown({
-  defaultOption,
+  defaultValue,
   selectedOption,
   allOptions,
   handleOptionChange,
   classDescption,
 }: {
-  defaultOption?: Nullable<ReactSelectOption>
+  defaultValue?: Nullable<ReactSelectOption>
   selectedOption: Nullable<ReactSelectOption>,
   allOptions: ReactSelectOption[],
   handleOptionChange: (selectedOption: SingleValue<ReactSelectOption> | null) => void
@@ -18,7 +18,7 @@ export function SelectDropDown({
   return (
     <div className={classDescption}>
       <Select
-        defaultValue={defaultOption}
+        defaultValue={defaultValue}
         value={selectedOption}
         options={allOptions}
         onChange={handleOptionChange}
