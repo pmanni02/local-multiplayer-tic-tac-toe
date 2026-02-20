@@ -1,85 +1,66 @@
 "use client";
 import { useEffect, useState } from "react";
-import io, { Socket } from "socket.io-client";
-import { ConnectionStatus } from "./connection-status";
 import { gameTie, gameWon } from "../game-utils";
 import { ResetGameButton } from "./reset-game-button";
 import { Board } from "./board";
 import { GameInfo } from "./game-info";
-import { useSearchParams } from 'next/navigation'
+import { useSocket } from "../socketContext";
+import { ConnectionStatus } from "./connection-status";
 
 export const WINNER = "WINNER!";
 export const TIE = "TIE!";
 
 export default function Game() {
-  const searchParams = useSearchParams()
-  const [socket, setSocket] = useState<null | Socket>();
+  const socket = useSocket();
   const [isConnected, setIsConnected] = useState(false);
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
-  // const [gameEvents, setGameEvents] = useState<{ squares: string[]; status: string; }[]>([])
   const [gameStatus, setGameStatus] = useState("");
 
   useEffect(() => {
-    // NOTE: set roomName and gameType
-    const roomName = searchParams.get('roomName')
-    const gameType = searchParams.get('gameType')
-    console.log(`Client joined room: ${roomName}, game type: ${gameType}`)
+    if (socket) {
+      setIsConnected(true)
 
-    // connect to NestJS websocket server
-    const socket = io("http://localhost:3001");
+      // get player character, room
+      socket.emit("playerConnected", {})
 
-    function onConnect() {
-      if (socket) {
-        setIsConnected(true);
-        console.log(`[CONNECT]: ${socket.id}`);
+      function onSetup({ playerCharacter, room }: { playerCharacter: string; room: string }) {
+        console.log(`[SETUP]: player char: ${playerCharacter}, room: ${room}`);
+        if (playerCharacter === "X" || playerCharacter === "O") {
+          setPlayerChar(playerCharacter);
+          // default first player to client with 'X' playerChar
+          setGameStatus(`X`);
+        }
       }
-    }
 
-    function onSetup(myObj: { playerChar: string; isPlayerTurn: boolean }) {
-      console.log(`[SETUP]: player char: ${myObj.playerChar}`);
-      if (myObj.playerChar === "X" || myObj.playerChar === "O") {
-        setPlayerChar(myObj.playerChar);
+      function onEvents(myObj: {
+        squares: string[];
+        status: string;
+        currentPlayer: string;
+      }) {
+        setSquares(myObj.squares);
+        setGameStatus(myObj.status);
 
-        // default first player to client with 'X' playerChar
-        setGameStatus(`X`);
+        if (gameWon(myObj.squares)) {
+          setGameStatus(WINNER);
+        } else if (gameTie(myObj.squares)) {
+          setGameStatus(TIE);
+        } else {
+          setGameStatus(myObj.currentPlayer);
+        }
       }
+
+      socket.on("setup", onSetup);
+      socket.on("events", onEvents);
     }
 
-    function onDisconnect() {
-      setIsConnected(false);
-      console.log(`[DISCONNECT]`);
-    }
-
-    function onEvents(myObj: {
-      squares: string[];
-      status: string;
-      currentPlayer: string;
-    }) {
-      setSquares(myObj.squares);
-      setGameStatus(myObj.status);
-
-      if (gameWon(myObj.squares)) {
-        setGameStatus(WINNER);
-      } else if (gameTie(myObj.squares)) {
-        setGameStatus(TIE);
-      } else {
-        setGameStatus(myObj.currentPlayer);
-      }
-    }
-
-    socket.on("connect", onConnect);
-    socket.on("setup", onSetup);
-    socket.on("disconnect", onDisconnect);
-    socket.on("events", onEvents);
-
-    setSocket(socket);
 
     return () => {
-      socket.disconnect();
-    };
-  }, [searchParams]);
+      socket?.off("setup")
+      socket?.off("events")
+    }
+  }, [socket]);
 
   return (
     <>

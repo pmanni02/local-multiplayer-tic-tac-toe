@@ -32,16 +32,7 @@ export class EventsGateway
     } else {
       players[socket.id] = 'O';
     }
-    const gameChar = players[socket.id];
-
-    // send playerChar to connected socket
-    this.server.to(socket.id).emit('setup', {
-      playerChar: gameChar,
-    });
-
-    console.log(
-      `[CONNECTED]: ${socket.id}, ${gameChar}. Total: ${numPlayers()}`,
-    );
+    console.log(`[CONNECTED]: ${socket.id}, playerChar: ${players[socket.id]}`);
   }
 
   handleDisconnect(socket: Socket) {
@@ -52,6 +43,20 @@ export class EventsGateway
     }
 
     console.log(`[DISCONNECTED]: ${socket.id}. Total: ${numPlayers()}`);
+  }
+
+  @SubscribeMessage('playerConnected')
+  handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
+    const tempDefaultRoom = 'room1';
+    const gameChar = players[socket.id];
+
+    // send playerChar to connected socket
+    this.server.to(socket.id).emit('setup', {
+      playerCharacter: gameChar,
+      room: tempDefaultRoom,
+    });
+
+    console.log(`[PLAYER INFO]: room: ${tempDefaultRoom}, char: ${gameChar}`);
   }
 
   @SubscribeMessage('events')

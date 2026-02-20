@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { SingleValue } from 'react-select'
 import { StartGameButton } from "./start-game-button";
 import { ReactSelectOption } from "../global";
-import { SelectDropDown } from "./select";
+import { SelectDropDown } from "./select-dropdown";
 
 // TODO: style page
 
@@ -13,13 +13,8 @@ const gameTypeOptions: ReactSelectOption[] = [
 ]
 
 const defaultGameTypeOption: ReactSelectOption = { value: 'regular', label: 'regular' }
-const defaultRoomOption: ReactSelectOption = { value: 'room1', label: 'room1' }
 
 export default function Page() {
-  const [rooms, setRooms] = useState<string[]>([]);
-
-  const [roomOptions, setRoomOptions] = useState<ReactSelectOption[]>([defaultRoomOption])
-  const [selectedRoomOption, setSelectedRoomOption] = useState<ReactSelectOption>(defaultRoomOption)
   const [selectedGameTypeOption, setSelectedGameTypeOption] = useState<ReactSelectOption>(defaultGameTypeOption)
 
   const handleGameTypeChange = (selectedOption: SingleValue<ReactSelectOption> | null) => {
@@ -28,73 +23,20 @@ export default function Page() {
     }
   }
 
-  const handleRoomNameChange = (selectedOption: SingleValue<ReactSelectOption> | null) => {
-    // TODO: add validation for room names
-    if (selectedOption) {
-      setSelectedRoomOption(selectedOption)
-    }
-  }
-
   return (
     <>
       <h1 className="text-3xl">Tic Tac Toe</h1>
       <div className="flex flex-col w-120">
-        {/* SELECT MENUS */}
         <div className="flex flex-row gap-y-4">
-          {/* GAME TYPE */}
           <SelectDropDown
+            defaultValue={defaultGameTypeOption}
             selectedOption={selectedGameTypeOption}
             allOptions={gameTypeOptions}
             handleOptionChange={handleGameTypeChange}
             classDescption=""
           />
-
-          {/* ROOM(S) */}
-          <SelectDropDown
-            selectedOption={selectedRoomOption}
-            allOptions={roomOptions}
-            handleOptionChange={handleRoomNameChange}
-            classDescption=""
-          />
-
-          {/* ADD NEW ROOM */}
-          {/* TODO: breakout room input into separate component */}
-          <div id="addRoomForm" className="flex flex-col">
-            <form
-              className="flex flex-col"
-              id="roomInput"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const target = e.target as typeof e.target & {
-                  addRoom: { value: string }
-                };
-                const newRoom = target.addRoom.value;
-                console.log('newRoom', newRoom)
-
-                const roomOptionsCopy = roomOptions.slice()
-                roomOptionsCopy.push({ value: `${newRoom}`, label: `${newRoom}` })
-
-                const roomsCopy = rooms.slice()
-                if (!roomsCopy.includes(newRoom)) {
-                  const myRooms = [...rooms, newRoom]
-                  setRoomOptions(roomOptionsCopy);
-                  setRooms(myRooms)
-                }
-
-                const form = document.getElementById('roomInput') as HTMLFormElement
-                form.reset()
-              }}>
-              <input
-                name="addRoom"
-                className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
-                placeholder="Add room name..."
-              />
-              <p className="flex label text-xs justify-end-safe text-slate-500/50">Press Enter</p>
-            </form>
-          </div>
+          <StartGameButton gameType={selectedGameTypeOption?.value} />
         </div>
-
-        <StartGameButton gameType={selectedGameTypeOption?.value} roomName={selectedRoomOption?.value} />
       </div>
     </>
   );
