@@ -10,7 +10,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-const players: Record<string, string> = {};
+type SocketInfo = {
+  playerChar: string;
+  roomName: string;
+};
+
+const players: Record<string, SocketInfo> = {};
 const numPlayers = () => Object.keys(players).length;
 
 @WebSocketGateway({ cors: true })
@@ -23,16 +28,20 @@ export class EventsGateway
     console.log('Websocket server initialized!');
   }
 
+  // On connection, determine room and player char
   handleConnection(socket: Socket) {
+    const tempDefaultRoom = 'room1';
     if (
       numPlayers() === 0 ||
-      (numPlayers() === 1 && Object.entries(players)[0][1] !== 'X')
+      (numPlayers() === 1 && Object.entries(players)[0][1].playerChar !== 'X')
     ) {
-      players[socket.id] = 'X';
+      players[socket.id] = { playerChar: 'X', roomName: tempDefaultRoom };
     } else {
-      players[socket.id] = 'O';
+      players[socket.id] = { playerChar: 'O', roomName: tempDefaultRoom };
     }
-    console.log(`[CONNECTED]: ${socket.id}, playerChar: ${players[socket.id]}`);
+    console.log(
+      `[CONNECTED]: ${socket.id}, char: ${players[socket.id].playerChar}, room: ${players[socket.id].roomName}`,
+    );
   }
 
   handleDisconnect(socket: Socket) {
@@ -47,16 +56,15 @@ export class EventsGateway
 
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
-    const tempDefaultRoom = 'room1';
-    const gameChar = players[socket.id];
+    const { playerChar, roomName } = players[socket.id];
 
     // send playerChar to connected socket
     this.server.to(socket.id).emit('setup', {
-      playerCharacter: gameChar,
-      room: tempDefaultRoom,
+      playerCharacter: playerChar,
+      room: roomName,
     });
 
-    console.log(`[PLAYER INFO]: room: ${tempDefaultRoom}, char: ${gameChar}`);
+    console.log(`[PLAYER INFO EMITTED]: ${socket.id}`);
   }
 
   @SubscribeMessage('events')
@@ -66,14 +74,16 @@ export class EventsGateway
       squares: string[];
       status: string;
       currentPlayer: string;
+      room: string;
     },
     @ConnectedSocket() socket: Socket,
   ): void {
-    console.log(`[EVENTS]: ${JSON.stringify(data)}`);
+    console.log(`[EVENTS]: ${JSON.stringify(data)} for ROOM: ${data.room}`);
     this.server.emit('events', {
       squares: data.squares,
       status: data.status,
       currentPlayer: data.currentPlayer,
+      room: data.room,
     });
   }
 }

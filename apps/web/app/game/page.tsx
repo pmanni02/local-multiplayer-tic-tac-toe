@@ -16,6 +16,7 @@ export default function Game() {
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
+  const [currentRoom, setCurrentRoom] = useState("")
   const [gameStatus, setGameStatus] = useState("");
 
   useEffect(() => {
@@ -29,32 +30,37 @@ export default function Game() {
         console.log(`[SETUP]: player char: ${playerCharacter}, room: ${room}`);
         if (playerCharacter === "X" || playerCharacter === "O") {
           setPlayerChar(playerCharacter);
-          // default first player to client with 'X' playerChar
+          setCurrentRoom(room)
+
+          // default first turn to client with 'X' playerChar
           setGameStatus(`X`);
         }
       }
 
-      function onEvents(myObj: {
+      function onEvents({
+        squares,
+        status,
+        currentPlayer,
+      }: {
         squares: string[];
         status: string;
         currentPlayer: string;
       }) {
-        setSquares(myObj.squares);
-        setGameStatus(myObj.status);
+        setSquares(squares);
+        setGameStatus(status);
 
-        if (gameWon(myObj.squares)) {
+        if (gameWon(squares)) {
           setGameStatus(WINNER);
-        } else if (gameTie(myObj.squares)) {
+        } else if (gameTie(squares)) {
           setGameStatus(TIE);
         } else {
-          setGameStatus(myObj.currentPlayer);
+          setGameStatus(currentPlayer);
         }
       }
 
       socket.on("setup", onSetup);
       socket.on("events", onEvents);
     }
-
 
     return () => {
       socket?.off("setup")
@@ -74,6 +80,7 @@ export default function Game() {
             squares={squares}
             gameStatus={gameStatus}
             playerChar={playerChar}
+            room={currentRoom}
             socket={socket}
           />
           <GameInfo playerChar={playerChar} gameStatus={gameStatus} />

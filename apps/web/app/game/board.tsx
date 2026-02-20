@@ -7,11 +7,13 @@ export function Board({
   squares,
   gameStatus,
   playerChar,
+  room,
   socket,
 }: {
   squares: ("" | "X" | "O")[];
   gameStatus: string;
   playerChar: string;
+  room: string;
   socket: Nullable<Socket>;
 }) {
   const numNonEmptySquares = squares.filter((x) => x !== "").length;
@@ -35,6 +37,7 @@ export function Board({
         squares: squaresCopy,
         status: gameStatus,
         currentPlayer: playerChar === "X" ? "O" : "X",
+        room,
       });
     }
   };

@@ -11,8 +11,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!socket) {
-      const socket = io("http://localhost:3001");
-      setSocket(socket);
+      const newSocket = io("http://localhost:3001");
+      setSocket(newSocket);
 
       function onConnect() {
         if (socket) {
@@ -26,13 +26,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         console.log(`[DISCONNECT]`);
       }
 
-      socket.on("connect", onConnect);
-      // socket.on("setup", onSetup);
-      socket.on("disconnect", onDisconnect);
-      // socket.on("events", onEvents);
+      newSocket.on("connect", onConnect);
+      newSocket.on("disconnect", onDisconnect);
 
       return () => {
-        socket.disconnect();
+        newSocket.disconnect();
       };
     }
   }, [])
