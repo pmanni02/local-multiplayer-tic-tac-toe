@@ -1,9 +1,11 @@
 "use client";
-import React, { useId, useState } from "react";
-import Select, { SingleValue } from 'react-select'
+import React, { useState } from "react";
+import { SingleValue } from 'react-select'
 import { StartGameButton } from "./start-game-button";
 import { OptionType } from "../global";
 import { SelectDropDown } from "./select";
+
+// TODO: style page
 
 const gameTypeOptions: OptionType[] = [
   { value: 'regular', label: 'regular' },
@@ -52,6 +54,7 @@ export default function Page() {
           />
 
           {/* ADD NEW ROOM */}
+          {/* TODO: breakout room input into separate component */}
           <div className="flex flex-col">
             <form
               className="flex flex-col"

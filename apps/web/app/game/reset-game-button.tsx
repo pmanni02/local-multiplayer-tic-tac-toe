@@ -12,7 +12,7 @@ const resetSquares = (socket: Socket) => {
   }
 };
 
-export function ResetGame({ socket }: { socket: Nullable<Socket> }) {
+export function ResetGameButton({ socket }: { socket: Nullable<Socket> }) {
   return (
     <div className="flex flex-row justify-center p-[2px]">
       <button

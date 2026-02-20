@@ -3,14 +3,16 @@ import { useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { ConnectionStatus } from "./connection-status";
 import { gameTie, gameWon } from "../game-utils";
-import { ResetGame } from "./reset-game";
+import { ResetGameButton } from "./reset-game-button";
 import { Board } from "./board";
 import { GameInfo } from "./game-info";
+import { useSearchParams } from 'next/navigation'
 
 export const WINNER = "WINNER!";
 export const TIE = "TIE!";
 
 export default function Game() {
+  const searchParams = useSearchParams()
   const [socket, setSocket] = useState<null | Socket>();
   const [isConnected, setIsConnected] = useState(false);
 
@@ -20,6 +22,11 @@ export default function Game() {
   const [gameStatus, setGameStatus] = useState("");
 
   useEffect(() => {
+    // NOTE: set roomName and gameType
+    const roomName = searchParams.get('roomName')
+    const gameType = searchParams.get('gameType')
+    console.log(`Client joined room: ${roomName}, game type: ${gameType}`)
+
     // connect to NestJS websocket server
     const socket = io("http://localhost:3001");
 
@@ -72,7 +79,7 @@ export default function Game() {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [searchParams]);
 
   return (
     <>
@@ -89,7 +96,7 @@ export default function Game() {
             socket={socket}
           />
           <GameInfo playerChar={playerChar} gameStatus={gameStatus} />
-          <ResetGame socket={socket} />
+          <ResetGameButton socket={socket} />
         </div>
       </div>
     </>
