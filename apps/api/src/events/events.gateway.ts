@@ -9,69 +9,15 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-
-// type SocketInfo = {
-//   playerChar: string;
-//   roomName: string;
-// };
-
-type Game = {
-  numPlayers: number;
-  // playerSocketIds: string[];
-  playerSocketInfo: Record<string, string>; // {socketId: playerChar}
-  gameType: string;
-};
+import {
+  addRoom,
+  Game,
+  getOpenRoomName,
+  getPlayerChar,
+  getRoomAndGameInfoBySocketId,
+} from './regularGame.utils';
 
 const GAME_MAP: Map<string, Game> = new Map();
-const getNumRooms = () => GAME_MAP.size;
-const getOpenRoomName = (): string[] => {
-  const roomInfo = [...GAME_MAP].filter(([roomName, game]) => {
-    return game.numPlayers <= 1;
-  });
-
-  if (roomInfo.length) {
-    return roomInfo.map(([name, game]) => name);
-  }
-  return [];
-};
-
-const addRoom = (gameType: string): string => {
-  const newGame = {
-    numPlayers: 0,
-    playerSocketInfo: {},
-    gameType,
-  };
-
-  const numRooms = getNumRooms();
-  const newRoomName = `room${numRooms + 1}`;
-  GAME_MAP.set(newRoomName, newGame);
-  return newRoomName;
-};
-
-const getNumPlayersInRoom = (roomName: string): number | null => {
-  const game = GAME_MAP.get(roomName);
-  return game ? game.numPlayers : null;
-};
-
-const getRoomAndGameInfoBySocketId = (
-  socketId: string,
-): { roomName: string; game: Game } | null => {
-  const room = [...GAME_MAP].find(([roomName, game]) => {
-    const socketIds = Object.entries(game.playerSocketInfo).map(
-      ([id, char]) => id,
-    );
-    return socketIds.includes(socketId);
-  });
-
-  if (room) {
-    const [name, game] = room;
-    return {
-      roomName: name,
-      game,
-    };
-  }
-  return null;
-};
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway
@@ -83,49 +29,38 @@ export class EventsGateway
     console.log('Websocket server initialized!');
   }
 
-  // On connection, determine room and player char
+  // TODO: handle reconnection logic
   handleConnection(socket: Socket) {
     // determine roomName, get open room OR create new room
     let roomName: string;
-    const openRooms = getOpenRoomName();
-    // console.log('openRooms', openRooms);
+    const openRooms = getOpenRoomName(GAME_MAP);
     if (openRooms.length > 0) {
       roomName = openRooms[0];
     } else {
-      roomName = addRoom('regular');
+      roomName = addRoom(GAME_MAP, 'regular');
     }
-    // console.log('roomName', roomName);
 
     // get game using roomName, either existing or new game
     const game = GAME_MAP.get(roomName);
-    // console.log('game', game);
-    const numPlayers = game?.numPlayers;
-    // console.log('numPlayers', numPlayers);
+    if (game) {
+      const playerChar = getPlayerChar(game);
+      game.numPlayers += 1;
+      game.playerSocketInfo[socket.id] = playerChar;
+      console.log('GAME_MAP', GAME_MAP);
 
-    // set player char based off number of players in game
-    let playerChar: string;
-    if (
-      numPlayers === 0 ||
-      (numPlayers === 1 && Object.entries(game!.playerSocketInfo)[0][1] !== 'X')
-    ) {
-      playerChar = 'X';
+      // join room
+      void socket.join(roomName);
+
+      console.log(
+        `[CONNECTED]: ${socket.id}, char: ${playerChar}, room: ${roomName}`,
+      );
     } else {
-      playerChar = 'O';
+      throw new Error(`issue determine game/room info for: ${socket.id}`);
     }
-    game!.numPlayers += 1;
-    game!.playerSocketInfo[socket.id] = playerChar;
-    console.log('GAME_MAP', GAME_MAP);
-
-    // join room
-    void socket.join(roomName);
-
-    console.log(
-      `[CONNECTED]: ${socket.id}, char: ${playerChar}, room: ${roomName}`,
-    );
   }
 
   handleDisconnect(socket: Socket) {
-    const roomAndGameInfo = getRoomAndGameInfoBySocketId(socket.id);
+    const roomAndGameInfo = getRoomAndGameInfoBySocketId(GAME_MAP, socket.id);
     if (roomAndGameInfo) {
       const { roomName, game } = roomAndGameInfo;
       delete game.playerSocketInfo[socket.id];
@@ -144,7 +79,7 @@ export class EventsGateway
 
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
-    const roomAndGameInfo = getRoomAndGameInfoBySocketId(socket.id);
+    const roomAndGameInfo = getRoomAndGameInfoBySocketId(GAME_MAP, socket.id);
     if (roomAndGameInfo) {
       const { roomName, game } = roomAndGameInfo;
       const playerChar = game.playerSocketInfo[socket.id];
