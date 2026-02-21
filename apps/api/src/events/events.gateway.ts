@@ -11,7 +11,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Game, RegularGameService } from 'src/services/regularGame.service';
 
-const GAME_MAP: Map<string, Game> = new Map();
 export const getTimeNow = (): string => {
   const now = new Date();
   const h = now.getHours();
@@ -87,10 +86,7 @@ export class EventsGateway
     // join room
     void socket.join(roomName);
 
-    // socket.emit('roomDetermined', {
-    //   roomName,
-    // });
-    this.server.emit('roomDetermined', {
+    this.server.to(roomName).emit('roomDetermined', {
       roomName,
     });
     console.log(`[ROOM      | ${getTimeNow()}]: ${socket.id}, ${roomName}`);
@@ -121,7 +117,6 @@ export class EventsGateway
       // send playerChar to connected socket
       this.server.to(socket.id).emit('setup', {
         playerCharacter: playerChar,
-        // room: roomName,
       });
 
       // check if player needs an opponent
@@ -154,9 +149,7 @@ export class EventsGateway
       currentPlayer: string;
       room: string;
     },
-    @ConnectedSocket() socket: Socket,
   ): void {
-    // console.log(`[EVENTS]: ${JSON.stringify(data)} for ROOM: ${data.room}`);
     this.server.to(data.room).emit('events', {
       squares: data.squares,
       status: data.status,
