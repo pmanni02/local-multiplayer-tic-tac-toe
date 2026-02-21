@@ -10,23 +10,68 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-type SocketInfo = {
-  playerChar: string;
-  roomName: string;
-};
+// type SocketInfo = {
+//   playerChar: string;
+//   roomName: string;
+// };
 
 type Game = {
   numPlayers: number;
-  playerSocketIds: string[];
+  // playerSocketIds: string[];
+  playerSocketInfo: Record<string, string>; // {socketId: playerChar}
   gameType: string;
 };
 
-let ROOM_ID = 1;
 const GAME_MAP: Map<string, Game> = new Map();
+const getNumRooms = () => GAME_MAP.size;
+const getOpenRoomName = (): string[] => {
+  const roomInfo = [...GAME_MAP].filter(([roomName, game]) => {
+    return game.numPlayers <= 1;
+  });
 
-// TODO: merge GAME_MAP and players
-const players: Record<string, SocketInfo> = {};
-const numPlayers = () => Object.keys(players).length;
+  if (roomInfo.length) {
+    return roomInfo.map(([name, game]) => name);
+  }
+  return [];
+};
+
+const addRoom = (gameType: string): string => {
+  const newGame = {
+    numPlayers: 0,
+    playerSocketInfo: {},
+    gameType,
+  };
+
+  const numRooms = getNumRooms();
+  const newRoomName = `room${numRooms + 1}`;
+  GAME_MAP.set(newRoomName, newGame);
+  return newRoomName;
+};
+
+const getNumPlayersInRoom = (roomName: string): number | null => {
+  const game = GAME_MAP.get(roomName);
+  return game ? game.numPlayers : null;
+};
+
+const getRoomAndGameInfoBySocketId = (
+  socketId: string,
+): { roomName: string; game: Game } | null => {
+  const room = [...GAME_MAP].find(([roomName, game]) => {
+    const socketIds = Object.entries(game.playerSocketInfo).map(
+      ([id, char]) => id,
+    );
+    return socketIds.includes(socketId);
+  });
+
+  if (room) {
+    const [name, game] = room;
+    return {
+      roomName: name,
+      game,
+    };
+  }
+  return null;
+};
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway
@@ -40,70 +85,80 @@ export class EventsGateway
 
   // On connection, determine room and player char
   handleConnection(socket: Socket) {
-    const roomName = `room${ROOM_ID}`;
-    if (
-      numPlayers() === 0 ||
-      (numPlayers() === 1 && Object.entries(players)[0][1].playerChar !== 'X')
-    ) {
-      players[socket.id] = { playerChar: 'X', roomName: roomName };
+    // determine roomName, get open room OR create new room
+    let roomName: string;
+    const openRooms = getOpenRoomName();
+    // console.log('openRooms', openRooms);
+    if (openRooms.length > 0) {
+      roomName = openRooms[0];
     } else {
-      players[socket.id] = { playerChar: 'O', roomName: roomName };
+      roomName = addRoom('regular');
     }
+    // console.log('roomName', roomName);
 
-    // check for existing game
-
+    // get game using roomName, either existing or new game
     const game = GAME_MAP.get(roomName);
+    // console.log('game', game);
+    const numPlayers = game?.numPlayers;
+    // console.log('numPlayers', numPlayers);
 
-    // game exists but room is not full
-    if (game && game.numPlayers <= 1) {
-      const updatedGame = {
-        ...game,
-        numPlayers: game.numPlayers + 1,
-        playerSocketIds: [...game.playerSocketIds, socket.id],
-      };
-      GAME_MAP.set(roomName, updatedGame);
-      ROOM_ID += 1;
+    // set player char based off number of players in game
+    let playerChar: string;
+    if (
+      numPlayers === 0 ||
+      (numPlayers === 1 && Object.entries(game!.playerSocketInfo)[0][1] !== 'X')
+    ) {
+      playerChar = 'X';
     } else {
-      const newGame: Game = {
-        gameType: 'regular',
-        playerSocketIds: [socket.id],
-        numPlayers: 1,
-      };
-      GAME_MAP.set(roomName, newGame);
+      playerChar = 'O';
     }
-
+    game!.numPlayers += 1;
+    game!.playerSocketInfo[socket.id] = playerChar;
     console.log('GAME_MAP', GAME_MAP);
 
     // join room
     void socket.join(roomName);
 
     console.log(
-      `[CONNECTED]: ${socket.id}, char: ${players[socket.id].playerChar}, room: ${players[socket.id].roomName}`,
+      `[CONNECTED]: ${socket.id}, char: ${playerChar}, room: ${roomName}`,
     );
   }
 
   handleDisconnect(socket: Socket) {
-    // TODO: update to handle new GAME_MAP
-    for (const [key] of Object.entries(players)) {
-      if (key === socket.id) {
-        delete players[key];
-      }
+    const roomAndGameInfo = getRoomAndGameInfoBySocketId(socket.id);
+    if (roomAndGameInfo) {
+      const { roomName, game } = roomAndGameInfo;
+      delete game.playerSocketInfo[socket.id];
+      const updatedGame: Game = {
+        ...game,
+        numPlayers: game.numPlayers - 1,
+        playerSocketInfo: game.playerSocketInfo,
+      };
+      GAME_MAP.set(roomName, updatedGame);
+      console.log('GAME_MAP', GAME_MAP);
+      console.log(`[DISCONNECTED]: ${socket.id}`);
+    } else {
+      throw new Error(`issue disconnecting socket w/ id: ${socket.id}`);
     }
-
-    console.log(`[DISCONNECTED]: ${socket.id}. Total: ${numPlayers()}`);
   }
 
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
-    const { playerChar, roomName } = players[socket.id];
+    const roomAndGameInfo = getRoomAndGameInfoBySocketId(socket.id);
+    if (roomAndGameInfo) {
+      const { roomName, game } = roomAndGameInfo;
+      const playerChar = game.playerSocketInfo[socket.id];
 
-    // send playerChar to connected socket
-    this.server.to(socket.id).emit('setup', {
-      playerCharacter: playerChar,
-      room: roomName,
-    });
+      // send playerChar to connected socket
+      this.server.to(socket.id).emit('setup', {
+        playerCharacter: playerChar,
+        room: roomName,
+      });
 
-    console.log(`[PLAYER INFO EMITTED]: ${socket.id}`);
+      console.log(`[PLAYER INFO EMITTED]: ${socket.id}`);
+    } else {
+      throw new Error(`room with socket id: ${socket.id} not found`);
+    }
   }
 
   @SubscribeMessage('events')
