@@ -89,8 +89,12 @@ export default function Game() {
             room={currentRoom}
             socket={socket}
           />
-          <GameInfo playerChar={playerChar} roomName={currentRoom} gameStatus={gameStatus} />
-          <ResetGameButton roomName={currentRoom}/>
+          <GameInfo
+            playerChar={playerChar}
+            roomName={currentRoom}
+            gameStatus={gameStatus}
+          />
+          <ResetGameButton roomName={currentRoom} />
         </div>
       </div>
     </>

@@ -13,9 +13,7 @@ export function GameInfo({
         <p className="items-center text-white text-m">Player: {playerChar}</p>
       </div>
       <div id="game-room">
-        <p className="items-center text-white text-m">
-          Room: {roomName}
-        </p>
+        <p className="items-center text-white text-m">Room: {roomName}</p>
       </div>
       <div id="current-turn">
         <p className="items-center text-white text-m">

@@ -9,7 +9,7 @@ const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
       squares: newSquares,
       status: "",
       currentPlayer: "X",
-      room: roomName
+      room: roomName,
     });
   }
 };
