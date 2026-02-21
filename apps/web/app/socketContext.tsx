@@ -4,46 +4,65 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useState,
   ReactNode,
+  useState,
 } from "react";
 import { io, Socket } from "socket.io-client";
 
-const SocketContext = createContext<Socket | null | undefined>(undefined);
+type ContextType = {
+    socket: Socket | null,
+    roomName: string
+  }
+
+const SocketContext = createContext<ContextType | undefined>(undefined);
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<null | Socket>(null);
+  const [room, setRoom] = useState("")
 
   useEffect(() => {
     if (!socket) {
-      const newSocket = io("http://localhost:3001");
-      setSocket(newSocket);
+      const mySocket = io("http://localhost:3001");
 
       function onConnect() {
-        if (socket) {
-          console.log(`[CONNECT]: ${socket ? socket.id : ""}`);
-        }
+        console.log(`[CONNECT]: ${mySocket ? mySocket.id : ""}, status: ${mySocket.connected}`);
+        mySocket.emit("playerConnected");
+      }
+
+      function onRoomDetermined({ roomName }: { roomName: string }) {
+        setRoom(roomName)
+        console.log(`[ROOM]: ${roomName}`)
       }
 
       function onDisconnect() {
         console.log(`[DISCONNECT]`);
       }
 
-      newSocket.on("connect", onConnect);
-      newSocket.on("disconnect", onDisconnect);
+      mySocket.on("roomDetermined", onRoomDetermined)
+      mySocket.on("connect", onConnect);
+      mySocket.on("disconnect", onDisconnect);
+
+      setSocket(mySocket)
 
       return () => {
-        newSocket.disconnect();
+        // mySocket.off("connect");
+        // mySocket.off("disconnect");
+        mySocket.disconnect();
       };
     }
   }, []);
 
+  const contextValue: ContextType = {
+    socket,
+    roomName: room
+  }
+
   return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={contextValue}>{children}</SocketContext.Provider>
   );
 };
 
-export const useSocket = (): Socket | null | undefined => {
+export const useSocket = (): ContextType => {
   const context = useContext(SocketContext);
   if (context === undefined) {
     throw new Error("useSocket must be made within a SocketProvider");

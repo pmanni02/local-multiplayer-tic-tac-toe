@@ -4,6 +4,7 @@ import { SingleValue } from "react-select";
 import { StartGameButton } from "./start-game-button";
 import { ReactSelectOption } from "../global";
 import { SelectDropDown } from "./select-dropdown";
+import { useSocket } from "./socketContext";
 
 // TODO: style page
 
@@ -18,6 +19,8 @@ const defaultGameTypeOption: ReactSelectOption = {
 };
 
 export default function Page() {
+  const { roomName } = useSocket();
+
   const [selectedGameTypeOption, setSelectedGameTypeOption] =
     useState<ReactSelectOption>(defaultGameTypeOption);
 
@@ -41,7 +44,7 @@ export default function Page() {
             handleOptionChange={handleGameTypeChange}
             classDescription=""
           />
-          <StartGameButton gameType={selectedGameTypeOption?.value} />
+          <StartGameButton roomName={roomName} gameType={selectedGameTypeOption?.value} />
         </div>
       </div>
     </>

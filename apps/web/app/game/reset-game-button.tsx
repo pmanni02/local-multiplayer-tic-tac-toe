@@ -14,8 +14,8 @@ const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
   }
 };
 
-export function ResetGameButton({ roomName }: { roomName: string }) {
-  const socket = useSocket();
+export function ResetGameButton() {
+  const { socket, roomName } = useSocket();
   return (
     <div className="flex flex-row justify-center p-[2px]">
       <button

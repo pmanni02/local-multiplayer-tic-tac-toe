@@ -13,13 +13,14 @@ export const TIE = "TIE!";
 export type GAME_CONNECTION_STATES = "connected" | "disconnected" | "pendingGame";
 
 export default function Game() {
-  const socket = useSocket();
+  const { socket, roomName } = useSocket();
+
   const [gameConnectionState, setGameConnectionState] = useState<GAME_CONNECTION_STATES>("pendingGame")
   const [connectionMessage, setConnectionMessage] = useState("...")
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
-  const [currentRoom, setCurrentRoom] = useState("");
+  // const [currentRoom, setCurrentRoom] = useState("");
 
   // TODO: combine with gameConnectionState, connectionMessage
   // currently have two different 'status's (connection/game status, player turn/game result)
@@ -27,29 +28,37 @@ export default function Game() {
 
   // TODO: look into how to handle reconnection/page refresh
   useEffect(() => {
-    if (socket) {
-      setGameConnectionState("connected")
-      setConnectionMessage("")
+    if (socket && roomName) {
 
       // get player character, room
-      socket.emit("playerConnected", {});
+      socket.emit("gameInitialized", {
+        roomName: roomName
+      });
 
       function onSetup({
         playerCharacter,
-        room,
       }: {
         playerCharacter: string;
-        room: string;
       }) {
-        console.log(`[SETUP]: player char: ${playerCharacter}, room: ${room}`);
+        console.log(`[SETUP]: player char: ${playerCharacter}, room: ${roomName}`);
         if (playerCharacter === "X" || playerCharacter === "O") {
           setPlayerChar(playerCharacter);
-          setCurrentRoom(room);
 
           // default first turn to client with 'X' playerChar
           setGameStatus(`X`);
           // setConnectionMessage("Connected to Server")
         }
+      }
+
+      // TODO: create type for valid statuses
+      function onGameStatus({ message, status }: { message: string, status: string }) {
+        console.log('msg', message)
+        if (status === 'pendingGame') {
+          setGameConnectionState("pendingGame")
+        } else if (status === 'ready') {
+          setGameConnectionState("connected")
+        }
+        setConnectionMessage(message)
       }
 
       function onEvents({
@@ -73,20 +82,9 @@ export default function Game() {
         }
       }
 
-      // TODO: create type for valid statuses
-      function onGameStatus({ message, status }: { message: string, status: string }) {
-        console.log('msg', message)
-        if (status === 'pendingGame') {
-          setGameConnectionState("pendingGame")
-        } else if(status === 'ready') {
-          setGameConnectionState("connected")
-        }
-        setConnectionMessage(message)
-      }
-
       socket.on("setup", onSetup);
-      socket.on("events", onEvents);
       socket.on("gameStatus", onGameStatus);
+      socket.on("events", onEvents);
     } else {
       setGameConnectionState("disconnected")
       setConnectionMessage("Disconnected")
@@ -97,7 +95,7 @@ export default function Game() {
       socket?.off("events");
       socket?.off("gameStatus")
     };
-  }, [socket]);
+  }, []);
 
   return (
     <>
@@ -112,15 +110,15 @@ export default function Game() {
             gameStatus={gameStatus}
             connectionState={gameConnectionState}
             playerChar={playerChar}
-            room={currentRoom}
+            room={roomName}
             socket={socket}
           />
           <GameInfo
             playerChar={playerChar}
-            roomName={currentRoom}
+            roomName={roomName}
             gameStatus={gameStatus}
           />
-          <ResetGameButton roomName={currentRoom} />
+          <ResetGameButton />
         </div>
       </div>
     </>

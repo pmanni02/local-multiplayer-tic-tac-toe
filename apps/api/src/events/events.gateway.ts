@@ -35,53 +35,14 @@ export class EventsGateway
 
   // TODO: handle reconnection logic
   handleConnection(socket: Socket) {
-    const gameMap = this.regularGameService.getGameMap();
-    // determine roomName, get open room OR create new room
-    let roomName: string;
-    const openRooms = this.regularGameService.getOpenRoomName();
-    if (openRooms.length > 0) {
-      roomName = openRooms[0];
-    } else {
-      roomName = this.regularGameService.addRoom('regular');
-    }
-
-    // get game using roomName, either existing or new game
-    const game = this.regularGameService.getGameMap().get(roomName);
-    if (game) {
-      const playerChar = this.regularGameService.getPlayerChar(game);
-      game.numPlayers += 1;
-      game.playerSocketInfo[socket.id] = playerChar;
-      console.log('GAME_MAP', gameMap);
-
-      // join room
-      void socket.join(roomName);
-
-      // check if player needs an opponent
-      if (game.numPlayers === 1) {
-        // emit to self
-        this.server.to(socket.id).emit('gameStatus', {
-          message: 'Waiting for opponent',
-          status: 'pendingGame',
-        });
-      } else if (game.numPlayers === 2) {
-        // emit to all players in room
-        this.server.to(roomName).emit('gameStatus', {
-          message: 'Game Ready',
-          status: 'ready',
-        });
-      }
-
-      console.log(
-        `[CONNECTED | ${getTimeNow()}]: ${socket.id}, char: ${playerChar}, room: ${roomName}`,
-      );
-    } else {
-      throw new Error(`issue determine game/room info for: ${socket.id}`);
-    }
+    console.log(`[CONNECTED | ${getTimeNow()}]: ${socket.id}`);
   }
 
   handleDisconnect(socket: Socket) {
     const roomAndGameInfo =
       this.regularGameService.getRoomAndGameInfoBySocketId(socket.id);
+
+    // only update game map if socket.id has been assigned a room
     if (roomAndGameInfo) {
       const { roomName, game } = roomAndGameInfo;
       delete game.playerSocketInfo[socket.id];
@@ -106,29 +67,81 @@ export class EventsGateway
 
       this.regularGameService.getGameMap().set(roomName, updatedGame);
       console.log('GAME_MAP', this.regularGameService.getGameMap());
-      console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
-    } else {
-      throw new Error(`issue disconnecting socket w/ id: ${socket.id}`);
     }
+    console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
   }
 
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
-    const roomAndGameInfo =
-      this.regularGameService.getRoomAndGameInfoBySocketId(socket.id);
-    if (roomAndGameInfo) {
-      const { roomName, game } = roomAndGameInfo;
-      const playerChar = game.playerSocketInfo[socket.id];
+    // determine roomName, get open room OR create new room
+    let roomName: string;
+    const openRooms = this.regularGameService.getOpenRoomName();
+    if (openRooms.length > 0) {
+      roomName = openRooms[0];
+    } else {
+      roomName = this.regularGameService.addRoom('regular');
+    }
+    const gameMap = this.regularGameService.getGameMap();
+    console.log('GAME_MAP', gameMap);
+
+    // join room
+    void socket.join(roomName);
+
+    // socket.emit('roomDetermined', {
+    //   roomName,
+    // });
+    this.server.emit('roomDetermined', {
+      roomName,
+    });
+    console.log(`[ROOM      | ${getTimeNow()}]: ${socket.id}, ${roomName}`);
+  }
+
+  @SubscribeMessage('gameInitialized')
+  handleGameInitialized(
+    @MessageBody()
+    data: {
+      roomName: string;
+    },
+    @ConnectedSocket() socket: Socket,
+  ): void {
+    const { roomName } = data;
+    const game = this.regularGameService.getGameMap().get(roomName);
+    if (
+      game &&
+      !this.regularGameService.getRoomAndGameInfoBySocketId(socket.id)
+    ) {
+      const playerChar = this.regularGameService.getPlayerChar(game);
+      game.numPlayers += 1;
+      game.playerSocketInfo[socket.id] = playerChar;
+
+      this.regularGameService.getGameMap().set(roomName, game);
+      const gameMap = this.regularGameService.getGameMap();
+      console.log('GAME_MAP', gameMap);
 
       // send playerChar to connected socket
       this.server.to(socket.id).emit('setup', {
         playerCharacter: playerChar,
-        room: roomName,
+        // room: roomName,
       });
 
-      console.log(`[PLAYER INFO EMITTED]: ${socket.id}`);
-    } else {
-      throw new Error(`room with socket id: ${socket.id} not found`);
+      // check if player needs an opponent
+      if (game.numPlayers === 1) {
+        // emit to self
+        this.server.to(roomName).emit('gameStatus', {
+          message: 'Waiting for opponent',
+          status: 'pendingGame',
+        });
+      } else if (game.numPlayers === 2) {
+        // emit to all players in room
+        this.server.to(roomName).emit('gameStatus', {
+          message: 'Game Ready',
+          status: 'ready',
+        });
+      }
+    }
+
+    if (!game) {
+      throw new Error(`issue determine game/room info for: ${socket.id}`);
     }
   }
 
@@ -143,12 +156,11 @@ export class EventsGateway
     },
     @ConnectedSocket() socket: Socket,
   ): void {
-    console.log(`[EVENTS]: ${JSON.stringify(data)} for ROOM: ${data.room}`);
+    // console.log(`[EVENTS]: ${JSON.stringify(data)} for ROOM: ${data.room}`);
     this.server.to(data.room).emit('events', {
       squares: data.squares,
       status: data.status,
       currentPlayer: data.currentPlayer,
-      room: data.room,
     });
   }
 }
