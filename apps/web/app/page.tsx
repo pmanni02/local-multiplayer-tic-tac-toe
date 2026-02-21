@@ -36,6 +36,7 @@ export default function Page() {
     <>
       <div className="flex flex-col gap-2 w-120 h-60 p-5 m-5 bg-gray-500 rounded-md">
         <h1 className="flex text-3xl justify-center">Tic Tac Toe</h1>
+        <p className="flex text-md font-medium justify-center">ROOM: {roomName}</p>
         <div className="flex flex-row justify-center gap-1">
           <SelectDropDown
             defaultValue={defaultGameTypeOption}
