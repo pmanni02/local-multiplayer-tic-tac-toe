@@ -9,13 +9,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import {
-  addRoom,
-  Game,
-  getOpenRoomName,
-  getPlayerChar,
-  getRoomAndGameInfoBySocketId,
-} from './regularGame.utils';
+import { Game, RegularGameService } from 'src/services/regularGame.service';
 
 const GAME_MAP: Map<string, Game> = new Map();
 
@@ -23,30 +17,33 @@ const GAME_MAP: Map<string, Game> = new Map();
 export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  constructor(private regularGameService: RegularGameService) {}
   @WebSocketServer() server: Server;
 
   afterInit() {
     console.log('Websocket server initialized!');
+    this.regularGameService = new RegularGameService();
   }
 
   // TODO: handle reconnection logic
   handleConnection(socket: Socket) {
+    const gameMap = this.regularGameService.getGameMap();
     // determine roomName, get open room OR create new room
     let roomName: string;
-    const openRooms = getOpenRoomName(GAME_MAP);
+    const openRooms = this.regularGameService.getOpenRoomName();
     if (openRooms.length > 0) {
       roomName = openRooms[0];
     } else {
-      roomName = addRoom(GAME_MAP, 'regular');
+      roomName = this.regularGameService.addRoom('regular');
     }
 
     // get game using roomName, either existing or new game
-    const game = GAME_MAP.get(roomName);
+    const game = this.regularGameService.getGameMap().get(roomName);
     if (game) {
-      const playerChar = getPlayerChar(game);
+      const playerChar = this.regularGameService.getPlayerChar(game);
       game.numPlayers += 1;
       game.playerSocketInfo[socket.id] = playerChar;
-      console.log('GAME_MAP', GAME_MAP);
+      console.log('GAME_MAP', gameMap);
 
       // join room
       void socket.join(roomName);
@@ -60,7 +57,8 @@ export class EventsGateway
   }
 
   handleDisconnect(socket: Socket) {
-    const roomAndGameInfo = getRoomAndGameInfoBySocketId(GAME_MAP, socket.id);
+    const roomAndGameInfo =
+      this.regularGameService.getRoomAndGameInfoBySocketId(socket.id);
     if (roomAndGameInfo) {
       const { roomName, game } = roomAndGameInfo;
       delete game.playerSocketInfo[socket.id];
@@ -69,8 +67,8 @@ export class EventsGateway
         numPlayers: game.numPlayers - 1,
         playerSocketInfo: game.playerSocketInfo,
       };
-      GAME_MAP.set(roomName, updatedGame);
-      console.log('GAME_MAP', GAME_MAP);
+      this.regularGameService.getGameMap().set(roomName, updatedGame);
+      console.log('GAME_MAP', this.regularGameService.getGameMap());
       console.log(`[DISCONNECTED]: ${socket.id}`);
     } else {
       throw new Error(`issue disconnecting socket w/ id: ${socket.id}`);
@@ -79,7 +77,8 @@ export class EventsGateway
 
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
-    const roomAndGameInfo = getRoomAndGameInfoBySocketId(GAME_MAP, socket.id);
+    const roomAndGameInfo =
+      this.regularGameService.getRoomAndGameInfoBySocketId(socket.id);
     if (roomAndGameInfo) {
       const { roomName, game } = roomAndGameInfo;
       const playerChar = game.playerSocketInfo[socket.id];
