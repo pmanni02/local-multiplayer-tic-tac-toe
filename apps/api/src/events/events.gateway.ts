@@ -12,6 +12,14 @@ import { Server, Socket } from 'socket.io';
 import { Game, RegularGameService } from 'src/services/regularGame.service';
 
 const GAME_MAP: Map<string, Game> = new Map();
+export const getTimeNow = (): string => {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+  const ms = now.getMilliseconds();
+  return `${h}:${m}:${s}:${ms}`;
+};
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway
@@ -50,19 +58,21 @@ export class EventsGateway
 
       // check if player needs an opponent
       if (game.numPlayers === 1) {
+        // emit to self
         this.server.to(socket.id).emit('gameStatus', {
           message: 'Waiting for opponent',
           status: 'pendingGame',
         });
       } else if (game.numPlayers === 2) {
-        this.server.emit('gameStatus', {
+        // emit to all players in room
+        this.server.to(roomName).emit('gameStatus', {
           message: 'Game Ready',
           status: 'ready',
         });
       }
 
       console.log(
-        `[CONNECTED]: ${socket.id}, char: ${playerChar}, room: ${roomName}`,
+        `[CONNECTED | ${getTimeNow()}]: ${socket.id}, char: ${playerChar}, room: ${roomName}`,
       );
     } else {
       throw new Error(`issue determine game/room info for: ${socket.id}`);
@@ -96,7 +106,7 @@ export class EventsGateway
 
       this.regularGameService.getGameMap().set(roomName, updatedGame);
       console.log('GAME_MAP', this.regularGameService.getGameMap());
-      console.log(`[DISCONNECTED]: ${socket.id}`);
+      console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
     } else {
       throw new Error(`issue disconnecting socket w/ id: ${socket.id}`);
     }

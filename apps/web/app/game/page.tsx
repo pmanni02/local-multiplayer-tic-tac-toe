@@ -14,16 +14,18 @@ export type GAME_CONNECTION_STATES = "connected" | "disconnected" | "pendingGame
 
 export default function Game() {
   const socket = useSocket();
-  const [gameConnectionState, setGameConnectionState] = useState<GAME_CONNECTION_STATES>("disconnected")
-  const [connectionMessage, setConnectionMessage] = useState("")
+  const [gameConnectionState, setGameConnectionState] = useState<GAME_CONNECTION_STATES>("pendingGame")
+  const [connectionMessage, setConnectionMessage] = useState("...")
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
   const [currentRoom, setCurrentRoom] = useState("");
 
-  // TODO: rename game status and/or combine with gameConnectionState, connectionMessage
+  // TODO: combine with gameConnectionState, connectionMessage
+  // currently have two different 'status's (connection/game status, player turn/game result)
   const [gameStatus, setGameStatus] = useState("");
 
+  // TODO: look into how to handle reconnection/page refresh
   useEffect(() => {
     if (socket) {
       setGameConnectionState("connected")
