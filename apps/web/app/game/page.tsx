@@ -10,13 +10,17 @@ import { ConnectionStatus } from "./connection-status";
 export const WINNER = "WINNER!";
 export const TIE = "TIE!";
 
-export type GAME_CONNECTION_STATES = "connected" | "disconnected" | "pendingGame";
+export type GAME_CONNECTION_STATES =
+  | "connected"
+  | "disconnected"
+  | "pendingGame";
 
 export default function Game() {
   const { socket, roomName } = useSocket();
 
-  const [gameConnectionState, setGameConnectionState] = useState<GAME_CONNECTION_STATES>("pendingGame")
-  const [connectionMessage, setConnectionMessage] = useState("...")
+  const [gameConnectionState, setGameConnectionState] =
+    useState<GAME_CONNECTION_STATES>("pendingGame");
+  const [connectionMessage, setConnectionMessage] = useState("...");
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
@@ -29,18 +33,15 @@ export default function Game() {
   // TODO: look into how to handle reconnection/page refresh
   useEffect(() => {
     if (socket && roomName) {
-
       // get player character, room
       socket.emit("gameInitialized", {
-        roomName: roomName
+        roomName: roomName,
       });
 
-      function onSetup({
-        playerCharacter,
-      }: {
-        playerCharacter: string;
-      }) {
-        console.log(`[SETUP]: player char: ${playerCharacter}, room: ${roomName}`);
+      function onSetup({ playerCharacter }: { playerCharacter: string }) {
+        console.log(
+          `[SETUP]: player char: ${playerCharacter}, room: ${roomName}`,
+        );
         if (playerCharacter === "X" || playerCharacter === "O") {
           setPlayerChar(playerCharacter);
 
@@ -51,14 +52,20 @@ export default function Game() {
       }
 
       // TODO: create type for valid statuses
-      function onGameStatus({ message, status }: { message: string, status: string }) {
-        console.log('msg', message)
-        if (status === 'pendingGame') {
-          setGameConnectionState("pendingGame")
-        } else if (status === 'ready') {
-          setGameConnectionState("connected")
+      function onGameStatus({
+        message,
+        status,
+      }: {
+        message: string;
+        status: string;
+      }) {
+        console.log("msg", message);
+        if (status === "pendingGame") {
+          setGameConnectionState("pendingGame");
+        } else if (status === "ready") {
+          setGameConnectionState("connected");
         }
-        setConnectionMessage(message)
+        setConnectionMessage(message);
       }
 
       function onEvents({
@@ -86,14 +93,14 @@ export default function Game() {
       socket.on("gameStatus", onGameStatus);
       socket.on("events", onEvents);
     } else {
-      setGameConnectionState("disconnected")
-      setConnectionMessage("Disconnected")
+      setGameConnectionState("disconnected");
+      setConnectionMessage("Disconnected");
     }
 
     return () => {
       socket?.off("setup");
       socket?.off("events");
-      socket?.off("gameStatus")
+      socket?.off("gameStatus");
     };
   }, []);
 
@@ -103,7 +110,10 @@ export default function Game() {
         <div className="flex flex-col size-110">
           <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading rounded-t-xs">
             Tic Tac Toe
-            <ConnectionStatus connectionState={gameConnectionState} connectionMessage={connectionMessage} />
+            <ConnectionStatus
+              connectionState={gameConnectionState}
+              connectionMessage={connectionMessage}
+            />
           </span>
           <Board
             squares={squares}

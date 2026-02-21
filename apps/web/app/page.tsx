@@ -44,7 +44,10 @@ export default function Page() {
             handleOptionChange={handleGameTypeChange}
             classDescription=""
           />
-          <StartGameButton roomName={roomName} gameType={selectedGameTypeOption?.value} />
+          <StartGameButton
+            roomName={roomName}
+            gameType={selectedGameTypeOption?.value}
+          />
         </div>
       </div>
     </>

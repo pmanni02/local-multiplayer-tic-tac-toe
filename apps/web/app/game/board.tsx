@@ -24,7 +24,11 @@ export function Board({
     (numNonEmptySquares % 2 !== 0 && playerChar === "X");
 
   const click = (index: number): void => {
-    if (squares[index] || gameStatus === WINNER || connectionState !== 'connected') {
+    if (
+      squares[index] ||
+      gameStatus === WINNER ||
+      connectionState !== "connected"
+    ) {
       return;
     } else if (isWrongTurn) {
       return;
