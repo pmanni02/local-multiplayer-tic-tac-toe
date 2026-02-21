@@ -10,7 +10,7 @@ export function StartGameButton({
 }) {
   if (gameType && roomName) {
     return (
-      <div className="flex flex-row p-[2px]">
+      <div className="flex flex-row">
         <Link
           href={{
             pathname: `/game`,

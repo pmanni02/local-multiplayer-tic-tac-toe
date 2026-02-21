@@ -47,7 +47,6 @@ export default function Game() {
 
           // default first turn to client with 'X' playerChar
           setGameStatus(`X`);
-          // setConnectionMessage("Connected to Server")
         }
       }
 

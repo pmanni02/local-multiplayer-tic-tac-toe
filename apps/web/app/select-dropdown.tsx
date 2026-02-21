@@ -7,7 +7,6 @@ export function SelectDropDown({
   selectedOption,
   allOptions,
   handleOptionChange,
-  classDescription,
 }: {
   defaultValue?: Nullable<ReactSelectOption>;
   selectedOption: Nullable<ReactSelectOption>;
@@ -15,10 +14,9 @@ export function SelectDropDown({
   handleOptionChange: (
     selectedOption: SingleValue<ReactSelectOption> | null,
   ) => void;
-  classDescription: string;
 }) {
   return (
-    <div className={classDescription}>
+    <>
       <Select
         defaultValue={defaultValue}
         value={selectedOption}
@@ -27,6 +25,6 @@ export function SelectDropDown({
         isClearable
         instanceId={useId()} // added to prevent hydration error
       />
-    </div>
+    </>
   );
 }

@@ -34,15 +34,14 @@ export default function Page() {
 
   return (
     <>
-      <h1 className="text-3xl">Tic Tac Toe</h1>
-      <div className="flex flex-col w-120">
-        <div className="flex flex-row gap-y-4">
+      <div className="flex flex-col gap-2 w-120 h-60 p-5 m-5 bg-gray-500 rounded-md">
+        <h1 className="flex text-3xl justify-center">Tic Tac Toe</h1>
+        <div className="flex flex-row justify-center gap-1">
           <SelectDropDown
             defaultValue={defaultGameTypeOption}
             selectedOption={selectedGameTypeOption}
             allOptions={gameTypeOptions}
             handleOptionChange={handleGameTypeChange}
-            classDescription=""
           />
           <StartGameButton
             roomName={roomName}
