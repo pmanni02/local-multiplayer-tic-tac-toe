@@ -48,6 +48,19 @@ export class EventsGateway
       // join room
       void socket.join(roomName);
 
+      // check if player needs an opponent
+      if (game.numPlayers === 1) {
+        this.server.to(socket.id).emit('gameStatus', {
+          message: 'Waiting for opponent',
+          status: 'pendingGame',
+        });
+      } else if (game.numPlayers === 2) {
+        this.server.emit('gameStatus', {
+          message: 'Game Ready',
+          status: 'ready',
+        });
+      }
+
       console.log(
         `[CONNECTED]: ${socket.id}, char: ${playerChar}, room: ${roomName}`,
       );
@@ -67,6 +80,20 @@ export class EventsGateway
         numPlayers: game.numPlayers - 1,
         playerSocketInfo: game.playerSocketInfo,
       };
+
+      // if there is still a player, notify other player of disconnect
+      if (updatedGame.numPlayers === 1) {
+        const opponentSocketId = Object.keys(updatedGame.playerSocketInfo)[0];
+        console.log('opponentSocketId', opponentSocketId);
+        this.server.to(opponentSocketId).emit('gameStatus', {
+          message: 'Opponent Disconnected',
+          status: 'pendingGame',
+        });
+      } else if (updatedGame.numPlayers === 0) {
+        // delete room
+        this.regularGameService.getGameMap().delete(roomName);
+      }
+
       this.regularGameService.getGameMap().set(roomName, updatedGame);
       console.log('GAME_MAP', this.regularGameService.getGameMap());
       console.log(`[DISCONNECTED]: ${socket.id}`);

@@ -1,17 +1,19 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
 import { Nullable } from "../../global";
-import { WINNER } from "./page";
+import { GAME_CONNECTION_STATES, WINNER } from "./page";
 
 export function Board({
   squares,
   gameStatus,
+  connectionState,
   playerChar,
   room,
   socket,
 }: {
   squares: ("" | "X" | "O")[];
   gameStatus: string;
+  connectionState: GAME_CONNECTION_STATES;
   playerChar: string;
   room: string;
   socket: Nullable<Socket>;
@@ -22,7 +24,7 @@ export function Board({
     (numNonEmptySquares % 2 !== 0 && playerChar === "X");
 
   const click = (index: number): void => {
-    if (squares[index] || gameStatus === WINNER) {
+    if (squares[index] || gameStatus === WINNER || connectionState !== 'connected') {
       return;
     } else if (isWrongTurn) {
       return;
