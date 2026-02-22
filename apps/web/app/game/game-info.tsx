@@ -8,7 +8,7 @@ export function GameInfo({
   gameStatus: string;
 }) {
   return (
-    <div className="flex justify-evenly pb-1 bg-black rounded-b-xs">
+    <div className="flex justify-center gap-5 bg-black rounded-b-md">
       <div id="player-char">
         <p className="items-center text-white text-m">Player: {playerChar}</p>
       </div>

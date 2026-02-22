@@ -102,9 +102,9 @@ export default function Game() {
 
   return (
     <>
-      <div className="flex justify-center content-center max-h-screen mt-30">
-        <div className="flex flex-col size-110">
-          <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading rounded-t-xs">
+      <div className="flex justify-center content-center h-screen items-center">
+        <div className="flex flex-col w-100 h-100">
+          <span className="flex justify-center text-xl font-bold text-white bg-black text-heading rounded-t-md">
             Regular
             <ConnectionStatus
               connectionState={gameConnectionState}
