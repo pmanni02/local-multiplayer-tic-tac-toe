@@ -6,6 +6,7 @@ import { Board } from "./board";
 import { GameInfo } from "./game-info";
 import { useSocket } from "../socketContext";
 import { ConnectionStatus } from "./connection-status";
+import { EndsGameButton } from "./end-game-button";
 
 export const WINNER = "WINNER!";
 export const TIE = "TIE!";
@@ -24,13 +25,9 @@ export default function Game() {
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
-  // const [currentRoom, setCurrentRoom] = useState("");
-
-  // TODO: combine with gameConnectionState, connectionMessage
-  // currently have two different 'status's (connection/game status, player turn/game result)
   const [gameStatus, setGameStatus] = useState("");
 
-  // TODO: look into how to handle reconnection/page refresh
+  // TODO: add users to handle reconnection/page refresh
   useEffect(() => {
     if (socket && roomName) {
       // get player character, room
@@ -58,7 +55,6 @@ export default function Game() {
         message: string;
         status: string;
       }) {
-        console.log("msg", message);
         if (status === "pendingGame") {
           setGameConnectionState("pendingGame");
         } else if (status === "ready") {
@@ -108,7 +104,7 @@ export default function Game() {
       <div className="flex justify-center content-center max-h-screen mt-30">
         <div className="flex flex-col size-110">
           <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading rounded-t-xs">
-            Tic Tac Toe
+            Regular
             <ConnectionStatus
               connectionState={gameConnectionState}
               connectionMessage={connectionMessage}
@@ -127,7 +123,10 @@ export default function Game() {
             roomName={roomName}
             gameStatus={gameStatus}
           />
-          <ResetGameButton />
+          <div className="flex flex-row justify-center gap-1">
+            <ResetGameButton />
+            <EndsGameButton />
+          </div>
         </div>
       </div>
     </>

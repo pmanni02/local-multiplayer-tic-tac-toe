@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Server, Socket } from 'socket.io';
 
 export type Game = {
   numPlayers: number;
@@ -70,5 +71,45 @@ export class RegularGameService {
       playerChar = 'O';
     }
     return playerChar;
+  };
+
+  removePlayerBySocketId = (
+    socket: Socket,
+    reason: 'disconnect' | 'manual',
+  ) => {
+    const roomAndGameInfo = this.getRoomAndGameInfoBySocketId(socket.id);
+
+    // only update game map if socket.id has been assigned a room
+    if (roomAndGameInfo) {
+      const { roomName, game } = roomAndGameInfo;
+      delete game.playerSocketInfo[socket.id];
+      const updatedGame: Game = {
+        ...game,
+        numPlayers: game.numPlayers - 1,
+        playerSocketInfo: game.playerSocketInfo,
+      };
+
+      this.gameMap.set(roomName, updatedGame);
+
+      //if there is still a player, notify other player of disconnect
+      if (updatedGame.numPlayers === 1) {
+        const opponentSocketId = Object.keys(updatedGame.playerSocketInfo)[0];
+        console.log('opponentSocketId', opponentSocketId);
+
+        if (reason === 'disconnect') {
+          socket.to(opponentSocketId).emit('gameStatus', {
+            message: 'Opponent Disconnected',
+            status: 'pendingGame',
+          });
+        } else if (reason === 'manual') {
+          socket.to(opponentSocketId).emit('gameStatus', {
+            message: 'Opponent Left Game',
+            status: 'pendingGame',
+          });
+        }
+      }
+      return true;
+    }
+    return false;
   };
 }

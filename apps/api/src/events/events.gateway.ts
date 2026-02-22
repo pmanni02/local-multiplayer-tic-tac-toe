@@ -38,35 +38,12 @@ export class EventsGateway
   }
 
   handleDisconnect(socket: Socket) {
-    const roomAndGameInfo =
-      this.regularGameService.getRoomAndGameInfoBySocketId(socket.id);
+    const isPlayerRemoved = this.regularGameService.removePlayerBySocketId(
+      socket,
+      'disconnect',
+    );
 
-    // only update game map if socket.id has been assigned a room
-    if (roomAndGameInfo) {
-      const { roomName, game } = roomAndGameInfo;
-      delete game.playerSocketInfo[socket.id];
-      const updatedGame: Game = {
-        ...game,
-        numPlayers: game.numPlayers - 1,
-        playerSocketInfo: game.playerSocketInfo,
-      };
-
-      // if there is still a player, notify other player of disconnect
-      if (updatedGame.numPlayers === 1) {
-        const opponentSocketId = Object.keys(updatedGame.playerSocketInfo)[0];
-        console.log('opponentSocketId', opponentSocketId);
-        this.server.to(opponentSocketId).emit('gameStatus', {
-          message: 'Opponent Disconnected',
-          status: 'pendingGame',
-        });
-      } else if (updatedGame.numPlayers === 0) {
-        // delete room
-        this.regularGameService.getGameMap().delete(roomName);
-      }
-
-      this.regularGameService.getGameMap().set(roomName, updatedGame);
-      console.log('GAME_MAP', this.regularGameService.getGameMap());
-    }
+    console.log('GAME_MAP', this.regularGameService.getGameMap());
     console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
   }
 
@@ -138,6 +115,21 @@ export class EventsGateway
     if (!game) {
       throw new Error(`issue determine game/room info for: ${socket.id}`);
     }
+    console.log(`[GAME INIT | ${getTimeNow()}]: ${socket.id}`);
+  }
+
+  @SubscribeMessage('gameEnded')
+  handGameEnded(@ConnectedSocket() socket: Socket): void {
+    const isPlayerRemoved = this.regularGameService.removePlayerBySocketId(
+      socket,
+      'manual',
+    );
+    if (!isPlayerRemoved) {
+      throw new Error(`issue disconnecting after leaving game`);
+    }
+
+    console.log('GAME_MAP', this.regularGameService.getGameMap());
+    console.log(`[LEFT GAME | ${getTimeNow()}]: ${socket.id}`);
   }
 
   @SubscribeMessage('events')
