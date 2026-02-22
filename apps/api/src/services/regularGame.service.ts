@@ -97,7 +97,7 @@ export class RegularGameService {
       //if there is still a player, notify other player of disconnect
       if (updatedGame.numPlayers === 1) {
         const opponentSocketId = Object.keys(updatedGame.playerSocketInfo)[0];
-        console.log('opponentSocketId', opponentSocketId);
+        // console.log('opponentSocketId', opponentSocketId);
 
         if (reason === 'disconnect') {
           socket.to(opponentSocketId).emit('gameStatus', {

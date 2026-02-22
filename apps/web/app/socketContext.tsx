@@ -24,6 +24,10 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     if (!socket) {
       const mySocket = io("http://localhost:3001");
 
+      if (!mySocket.connected) {
+        mySocket.connect();
+      }
+
       function onConnect() {
         console.log(
           `[CONNECT]: ${mySocket ? mySocket.id : ""}, status: ${mySocket.connected}`,
@@ -52,6 +56,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         mySocket.disconnect();
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const contextValue: ContextType = {

@@ -40,7 +40,6 @@ export class EventsGateway
     this.regularGameService = new RegularGameService();
   }
 
-  // TODO: handle reconnection logic
   handleConnection(socket: Socket) {
     console.log(`[CONNECTED | ${getTimeNow()}]: ${socket.id}`);
   }
@@ -130,6 +129,7 @@ export class EventsGateway
       socket,
       'manual',
     );
+
     if (!isPlayerRemoved) {
       throw new Error(`issue disconnecting after leaving game`);
     }

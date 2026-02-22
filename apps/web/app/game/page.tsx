@@ -7,7 +7,10 @@ import { GameInfo } from "./game-info";
 import { useSocket } from "../socketContext";
 import { ConnectionStatus } from "./connection-status";
 import { EndsGameButton } from "./end-game-button";
-import { GAME_CONNECTION_STATES, GameInitializedMessage } from "@repo/shared-types";
+import {
+  GAME_CONNECTION_STATES,
+  GameInitializedMessage,
+} from "@repo/shared-types";
 
 export const WINNER = "WINNER!";
 export const TIE = "TIE!";
@@ -29,7 +32,7 @@ export default function Game() {
       // get player character, room
       const gameInitializedMessage: GameInitializedMessage = {
         roomName,
-      }
+      };
       socket.emit("gameInitialized", gameInitializedMessage);
 
       function onSetup({ playerCharacter }: { playerCharacter: string }) {
@@ -94,6 +97,7 @@ export default function Game() {
       socket?.off("events");
       socket?.off("gameStatus");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

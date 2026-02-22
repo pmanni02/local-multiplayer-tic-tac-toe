@@ -20,7 +20,7 @@ export type EventsMessageToServer = {
   room: string;
 };
 
-export type EventsMessageToClient = Omit<EventsMessageToServer, 'room'>
+export type EventsMessageToClient = Omit<EventsMessageToServer, "room">;
 
 export type GAME_CONNECTION_STATES =
   | "connected"

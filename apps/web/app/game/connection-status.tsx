@@ -1,6 +1,5 @@
 import { GAME_CONNECTION_STATES } from "@repo/shared-types";
 
-
 export function ConnectionStatus({
   connectionState,
   connectionMessage,
