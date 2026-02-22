@@ -1,5 +1,5 @@
 "use client";
-
+import { RoomDeterminedMessage } from "@repo/shared-types";
 import React, {
   createContext,
   useContext,
@@ -31,7 +31,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         mySocket.emit("playerConnected");
       }
 
-      function onRoomDetermined({ roomName }: { roomName: string }) {
+      function onRoomDetermined({ roomName }: RoomDeterminedMessage) {
         setRoom(roomName);
         console.log(`[ROOM]: ${roomName}`);
       }

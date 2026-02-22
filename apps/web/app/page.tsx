@@ -6,8 +6,6 @@ import { ReactSelectOption } from "../global";
 import { SelectDropDown } from "./select-dropdown";
 import { useSocket } from "./socketContext";
 
-// TODO: style page
-
 const gameTypeOptions: ReactSelectOption[] = [
   { value: "regular", label: "regular" },
   { value: "ultimate", label: "ultimate" },

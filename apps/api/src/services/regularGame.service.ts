@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+// import { Game } from '@repo/shared-types';
 import { Server, Socket } from 'socket.io';
 
 export type Game = {
@@ -7,16 +8,18 @@ export type Game = {
   gameType: string;
 };
 
+export type RoomToGameMap = Map<string, Game>;
+
 @Injectable()
 export class RegularGameService {
-  private readonly gameMap: Map<string, Game> = new Map();
+  private readonly roomToGameMap: RoomToGameMap = new Map();
 
-  getGameMap = () => {
-    return this.gameMap;
+  getGameToRoomMap = () => {
+    return this.roomToGameMap;
   };
 
   getOpenRoomName = (): string[] => {
-    const roomInfo = [...this.gameMap].filter(([roomName, game]) => {
+    const roomInfo = [...this.roomToGameMap].filter(([roomName, game]) => {
       return game.numPlayers <= 1;
     });
 
@@ -33,18 +36,18 @@ export class RegularGameService {
       gameType,
     };
 
-    const numRooms = this.gameMap.size;
+    const numRooms = this.roomToGameMap.size;
     const newRoomName = `room${numRooms + 1}`;
-    this.gameMap.set(newRoomName, newGame);
+    this.roomToGameMap.set(newRoomName, newGame);
     return newRoomName;
   };
 
-  getRoomAndGameInfoBySocketId = (
+  getRoomAndGameBySocketId = (
     socketId: string,
   ): { roomName: string; game: Game } | null => {
-    const room = [...this.gameMap].find(([roomName, game]) => {
+    const room = [...this.roomToGameMap].find(([_, game]) => {
       const socketIds = Object.entries(game.playerSocketInfo).map(
-        ([id, char]) => id,
+        ([id, _]) => id,
       );
       return socketIds.includes(socketId);
     });
@@ -77,7 +80,7 @@ export class RegularGameService {
     socket: Socket,
     reason: 'disconnect' | 'manual',
   ) => {
-    const roomAndGameInfo = this.getRoomAndGameInfoBySocketId(socket.id);
+    const roomAndGameInfo = this.getRoomAndGameBySocketId(socket.id);
 
     // only update game map if socket.id has been assigned a room
     if (roomAndGameInfo) {
@@ -89,7 +92,7 @@ export class RegularGameService {
         playerSocketInfo: game.playerSocketInfo,
       };
 
-      this.gameMap.set(roomName, updatedGame);
+      this.roomToGameMap.set(roomName, updatedGame);
 
       //if there is still a player, notify other player of disconnect
       if (updatedGame.numPlayers === 1) {

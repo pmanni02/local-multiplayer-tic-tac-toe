@@ -1,7 +1,7 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
-import { Nullable } from "../../global";
-import { GAME_CONNECTION_STATES, WINNER } from "./page";
+import { WINNER } from "./page";
+import { GAME_CONNECTION_STATES, Nullable } from "@repo/shared-types";
 
 export function Board({
   squares,

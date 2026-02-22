@@ -1,6 +1,7 @@
 import { useId } from "react";
 import Select, { SingleValue } from "react-select";
-import { Nullable, ReactSelectOption } from "../global";
+import { ReactSelectOption } from "../global";
+import { Nullable } from "@repo/shared-types";
 
 export function SelectDropDown({
   defaultValue,

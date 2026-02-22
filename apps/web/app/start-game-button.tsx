@@ -1,5 +1,5 @@
+import { Nullable } from "@repo/shared-types";
 import Link from "next/link";
-import { Nullable } from "../global";
 
 export function StartGameButton({
   gameType,

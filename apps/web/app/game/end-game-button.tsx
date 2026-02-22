@@ -1,7 +1,12 @@
 import { Socket } from "socket.io-client";
-import { Nullable } from "../../global";
 import { useSocket } from "../socketContext";
 import Link from "next/link";
+import { Nullable } from "@repo/shared-types";
+
+// TODO: 
+// - add toast to confirm if player wants to end the game
+// - send alert to opponent upon request to end
+// - send alert with decision to leave
 
 const endGame = (socket: Nullable<Socket>) => {
   if (socket) {

@@ -7,14 +7,10 @@ import { GameInfo } from "./game-info";
 import { useSocket } from "../socketContext";
 import { ConnectionStatus } from "./connection-status";
 import { EndsGameButton } from "./end-game-button";
+import { GAME_CONNECTION_STATES, GameInitializedMessage } from "@repo/shared-types";
 
 export const WINNER = "WINNER!";
 export const TIE = "TIE!";
-
-export type GAME_CONNECTION_STATES =
-  | "connected"
-  | "disconnected"
-  | "pendingGame";
 
 export default function Game() {
   const { socket, roomName } = useSocket();
@@ -31,9 +27,10 @@ export default function Game() {
   useEffect(() => {
     if (socket && roomName) {
       // get player character, room
-      socket.emit("gameInitialized", {
-        roomName: roomName,
-      });
+      const gameInitializedMessage: GameInitializedMessage = {
+        roomName,
+      }
+      socket.emit("gameInitialized", gameInitializedMessage);
 
       function onSetup({ playerCharacter }: { playerCharacter: string }) {
         console.log(

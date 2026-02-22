@@ -1,6 +1,12 @@
 import { Socket } from "socket.io-client";
-import { Nullable } from "../../global";
 import { useSocket } from "../socketContext";
+import { Nullable } from "@repo/shared-types";
+
+// TODO: 
+// - add toast to confirm if player wants to reset
+//  - if yes, add toast to ask opponent for confirmation as well
+//  - if both confirm, send reset board
+//  - else, add alert for aborted game reset
 
 const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
   const newSquares = Array(9).fill("");
