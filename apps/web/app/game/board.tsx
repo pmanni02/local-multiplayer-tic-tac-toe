@@ -1,7 +1,7 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
 import { WINNER } from "./page";
-import { GAME_CONNECTION_STATES, Nullable } from "@repo/shared-types";
+import { GameConnectionStates, Nullable } from "@repo/shared-types";
 
 export function Board({
   squares,
@@ -13,7 +13,7 @@ export function Board({
 }: {
   squares: ("" | "X" | "O")[];
   gameStatus: string;
-  connectionState: GAME_CONNECTION_STATES;
+  connectionState: GameConnectionStates;
   playerChar: string;
   room: string;
   socket: Nullable<Socket>;

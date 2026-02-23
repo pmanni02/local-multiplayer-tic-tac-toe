@@ -1,8 +1,12 @@
 export type Nullable<T> = T | null | undefined;
 
+export type GameConnectionStates = "connected" | "disconnected" | "pendingGame";
+export type ValidGameStatus = "pendingGame" | "opponentLeft" | "ready";
+
+// WS messages
 export type GameStatusMessage = {
   message: string;
-  status: string;
+  status: ValidGameStatus;
 };
 
 export type RoomDeterminedMessage = {
@@ -21,8 +25,3 @@ export type EventsMessageToServer = {
 };
 
 export type EventsMessageToClient = Omit<EventsMessageToServer, "room">;
-
-export type GAME_CONNECTION_STATES =
-  | "connected"
-  | "disconnected"
-  | "pendingGame";

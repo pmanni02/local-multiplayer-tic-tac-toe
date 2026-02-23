@@ -1,10 +1,10 @@
-import { GAME_CONNECTION_STATES } from "@repo/shared-types";
+import { GameConnectionStates } from "@repo/shared-types";
 
 export function ConnectionStatus({
   connectionState,
   connectionMessage,
 }: {
-  connectionState: GAME_CONNECTION_STATES;
+  connectionState: GameConnectionStates;
   connectionMessage: string;
 }) {
   let connectionColor: string = "";

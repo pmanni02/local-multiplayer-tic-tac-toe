@@ -8,7 +8,7 @@ import { useState } from "react";
 
 // TODO:
 // - create modal to confirm if player wants to end the game (DONE)
-// - send alert to opponent, that game is over, send 'events' msg to reset
+// - send alert to opponent (if exists), that game is over, send 'events' msg to reset
 
 const endGame = (socket: Nullable<Socket>) => {
   if (socket) {

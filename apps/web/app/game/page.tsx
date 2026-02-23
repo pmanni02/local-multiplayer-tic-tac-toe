@@ -8,8 +8,10 @@ import { useSocket } from "../socketContext";
 import { ConnectionStatus } from "./connection-status";
 import { EndsGameButton } from "./end-game-button";
 import {
-  GAME_CONNECTION_STATES,
+  EventsMessageToClient,
+  GameConnectionStates,
   GameInitializedMessage,
+  GameStatusMessage,
 } from "@repo/shared-types";
 
 export const WINNER = "WINNER!";
@@ -19,7 +21,7 @@ export default function Game() {
   const { socket, roomName } = useSocket();
 
   const [gameConnectionState, setGameConnectionState] =
-    useState<GAME_CONNECTION_STATES>("pendingGame");
+    useState<GameConnectionStates>("pendingGame");
   const [connectionMessage, setConnectionMessage] = useState("...");
 
   const [squares, setSquares] = useState(Array(9).fill(""));
@@ -48,14 +50,9 @@ export default function Game() {
       }
 
       // TODO: create type for valid statuses
-      function onGameStatus({
-        message,
-        status,
-      }: {
-        message: string;
-        status: string;
-      }) {
-        if (status === "pendingGame") {
+      function onGameStatus({ message, status }: GameStatusMessage
+      ) {
+        if (status === "pendingGame" || status === "opponentLeft") {
           setGameConnectionState("pendingGame");
         } else if (status === "ready") {
           setGameConnectionState("connected");
@@ -67,11 +64,8 @@ export default function Game() {
         squares,
         status,
         currentPlayer,
-      }: {
-        squares: string[];
-        status: string;
-        currentPlayer: string;
-      }) {
+      }: EventsMessageToClient
+      ) {
         setSquares(squares);
         setGameStatus(status);
 

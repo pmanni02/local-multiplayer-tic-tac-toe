@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-// import { Game } from '@repo/shared-types';
-import { Server, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 
 export type Game = {
   numPlayers: number;
@@ -107,7 +106,7 @@ export class RegularGameService {
         } else if (reason === 'manual') {
           socket.to(opponentSocketId).emit('gameStatus', {
             message: 'Opponent Left Game',
-            status: 'pendingGame',
+            status: 'opponentLeft',
           });
         }
       }
