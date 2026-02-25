@@ -10,13 +10,12 @@ export function StartGameButton({
 }) {
   if (gameType && roomName) {
     return (
-      <div className="flex flex-row">
+      <div className="flex items-center h-full bg-dark-orange rounded font-normal text-white px-2 hover:font-semibold">
         <Link
           href={{
             pathname: `/game`,
             query: { room: roomName, type: gameType },
           }}
-          className="text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
         >
           Start!
         </Link>

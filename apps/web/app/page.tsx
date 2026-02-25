@@ -33,23 +33,30 @@ export default function Page() {
   return (
     <>
       {/* flex justify-center content-center h-screen items-center */}
-      <div className="flex flex-col justify-center content-center h-screen items-center bg-gray-500">
-        <h1 className="flex text-3xl justify-center">Tic Tac Toe</h1>
-        <p className="flex text-md font-medium justify-center">
-          ROOM: {roomName}
-        </p>
-        <div className="flex flex-row justify-center gap-1">
-          <SelectDropDown
-            defaultValue={defaultGameTypeOption}
-            selectedOption={selectedGameTypeOption}
-            allOptions={gameTypeOptions}
-            handleOptionChange={handleGameTypeChange}
-          />
-          <StartGameButton
-            roomName={roomName}
-            gameType={selectedGameTypeOption?.value}
-          />
+      <div className="flex flex-col justify-center content-center h-screen items-centez bg-light-blue">
+        <h1 className="flex text-7xl font-bold tracking-wide text-dark-blue text-shadow-md justify-center pb-5">
+          TIC TAC TOE
+        </h1>
+        <div className="flex flex-row justify-center gap-3 pt-5">
+          <div className="text-shadow-md">
+            <SelectDropDown
+              defaultValue={defaultGameTypeOption}
+              selectedOption={selectedGameTypeOption}
+              allOptions={gameTypeOptions}
+              handleOptionChange={handleGameTypeChange}
+            />
+          </div>
+          <div className="text-shadow-md">
+            <StartGameButton
+              roomName={roomName}
+              gameType={selectedGameTypeOption?.value}
+            />
+          </div>
+
         </div>
+        <p className="flex justify-center pt-3">
+          <span className="text-md font-bold text-shadow-md">ROOM: </span>{roomName}
+        </p>
       </div>
     </>
   );

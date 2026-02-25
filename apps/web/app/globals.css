@@ -15,7 +15,11 @@
 }
 
 @theme {
-
+  --color-light-blue: #909CC2;
+  --color-dark-blue: #084887;
+  --color-dark-orange: #F58A07;
+  --color-light-orange: #F9AB55;
+  --color-light-pink: #F7F5FB;
 }
 
 @media (prefers-color-scheme: dark) {
