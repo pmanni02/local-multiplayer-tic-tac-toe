@@ -1,102 +1,127 @@
 "use client";
 import { useEffect, useState } from "react";
-import io, { Socket } from "socket.io-client";
-import { ConnectionStatus } from "./connection-status";
 import { gameTie, gameWon } from "../game-utils";
 import { ResetGameButton } from "./reset-game-button";
 import { Board } from "./board";
 import { GameInfo } from "./game-info";
-import { useSearchParams } from 'next/navigation'
+import { useSocket } from "../socketContext";
+import { ConnectionStatus } from "./connection-status";
+import { EndsGameButton } from "./end-game-button";
+import {
+  EventsMessageToClient,
+  GameConnectionStates,
+  GameInitializedMessage,
+  GameStatusMessage,
+} from "@repo/shared-types";
 
 export const WINNER = "WINNER!";
 export const TIE = "TIE!";
 
 export default function Game() {
-  const searchParams = useSearchParams()
-  const [socket, setSocket] = useState<null | Socket>();
-  const [isConnected, setIsConnected] = useState(false);
+  const { socket, roomName } = useSocket();
+
+  const [gameConnectionState, setGameConnectionState] =
+    useState<GameConnectionStates>("pendingGame");
+  const [connectionMessage, setConnectionMessage] = useState("...");
 
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
-  // const [gameEvents, setGameEvents] = useState<{ squares: string[]; status: string; }[]>([])
   const [gameStatus, setGameStatus] = useState("");
 
+  // TODO: add users to handle reconnection/page refresh
   useEffect(() => {
-    // NOTE: set roomName and gameType
-    const roomName = searchParams.get('roomName')
-    const gameType = searchParams.get('gameType')
-    console.log(`Client joined room: ${roomName}, game type: ${gameType}`)
+    if (socket && roomName) {
+      // get player character, room
+      const gameInitializedMessage: GameInitializedMessage = {
+        roomName,
+      };
+      socket.emit("gameInitialized", gameInitializedMessage);
 
-    // connect to NestJS websocket server
-    const socket = io("http://localhost:3001");
+      function onSetup({ playerCharacter }: { playerCharacter: string }) {
+        console.log(
+          `[SETUP]: player char: ${playerCharacter}, room: ${roomName}`,
+        );
+        if (playerCharacter === "X" || playerCharacter === "O") {
+          setPlayerChar(playerCharacter);
 
-    function onConnect() {
-      if (socket) {
-        setIsConnected(true);
-        console.log(`[CONNECT]: ${socket.id}`);
+          // default first turn to client with 'X' playerChar
+          setGameStatus(`X`);
+        }
       }
-    }
 
-    function onSetup(myObj: { playerChar: string; isPlayerTurn: boolean }) {
-      console.log(`[SETUP]: player char: ${myObj.playerChar}`);
-      if (myObj.playerChar === "X" || myObj.playerChar === "O") {
-        setPlayerChar(myObj.playerChar);
-
-        // default first player to client with 'X' playerChar
-        setGameStatus(`X`);
+      // TODO: create type for valid statuses
+      function onGameStatus({ message, status }: GameStatusMessage
+      ) {
+        if (status === "pendingGame" || status === "opponentLeft") {
+          setGameConnectionState("pendingGame");
+        } else if (status === "ready") {
+          setGameConnectionState("connected");
+        }
+        setConnectionMessage(message);
       }
-    }
 
-    function onDisconnect() {
-      setIsConnected(false);
-      console.log(`[DISCONNECT]`);
-    }
+      function onEvents({
+        squares,
+        status,
+        currentPlayer,
+      }: EventsMessageToClient
+      ) {
+        setSquares(squares);
+        setGameStatus(status);
 
-    function onEvents(myObj: {
-      squares: string[];
-      status: string;
-      currentPlayer: string;
-    }) {
-      setSquares(myObj.squares);
-      setGameStatus(myObj.status);
-
-      if (gameWon(myObj.squares)) {
-        setGameStatus(WINNER);
-      } else if (gameTie(myObj.squares)) {
-        setGameStatus(TIE);
-      } else {
-        setGameStatus(myObj.currentPlayer);
+        if (gameWon(squares)) {
+          setGameStatus(WINNER);
+        } else if (gameTie(squares)) {
+          setGameStatus(TIE);
+        } else {
+          setGameStatus(currentPlayer);
+        }
       }
+
+      socket.on("setup", onSetup);
+      socket.on("gameStatus", onGameStatus);
+      socket.on("events", onEvents);
+    } else {
+      setGameConnectionState("disconnected");
+      setConnectionMessage("Disconnected");
     }
-
-    socket.on("connect", onConnect);
-    socket.on("setup", onSetup);
-    socket.on("disconnect", onDisconnect);
-    socket.on("events", onEvents);
-
-    setSocket(socket);
 
     return () => {
-      socket.disconnect();
+      socket?.off("setup");
+      socket?.off("events");
+      socket?.off("gameStatus");
     };
-  }, [searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
-      <div className="flex justify-center content-center max-h-screen mt-30">
-        <div className="flex flex-col size-110">
-          <span className="flex justify-center pt-1 text-xl font-bold text-white bg-black text-heading rounded-t-xs">
-            Tic Tac Toe
-            <ConnectionStatus isConnected={isConnected} />
+      <div className="flex justify-center content-center h-screen items-center">
+        <div className="flex flex-col w-100 h-100">
+          <span className="flex justify-center text-xl font-bold text-white bg-black text-heading rounded-t-md">
+            Regular
+            <ConnectionStatus
+              connectionState={gameConnectionState}
+              connectionMessage={connectionMessage}
+            />
           </span>
           <Board
             squares={squares}
             gameStatus={gameStatus}
+            connectionState={gameConnectionState}
             playerChar={playerChar}
+            room={roomName}
             socket={socket}
           />
-          <GameInfo playerChar={playerChar} gameStatus={gameStatus} />
-          <ResetGameButton socket={socket} />
+          <GameInfo
+            playerChar={playerChar}
+            roomName={roomName}
+            gameStatus={gameStatus}
+          />
+          <div className="flex flex-row justify-center gap-1">
+            <ResetGameButton />
+            <EndsGameButton />
+          </div>
         </div>
       </div>
     </>

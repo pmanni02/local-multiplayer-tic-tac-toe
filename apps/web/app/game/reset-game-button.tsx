@@ -1,24 +1,33 @@
 import { Socket } from "socket.io-client";
-import { Nullable } from "../../global";
+import { useSocket } from "../socketContext";
+import { Nullable } from "@repo/shared-types";
 
-const resetSquares = (socket: Socket) => {
+// TODO:
+// - create modal to confirm if user wants to reset
+//  - if yes, popup modal for opponent for decision
+//  - if both confirm, send reset board 'events' msg
+//  - else, add create toast (or alert) for both players that game reset was aborted
+
+const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
   const newSquares = Array(9).fill("");
   if (socket) {
     socket.emit("events", {
       squares: newSquares,
       status: "",
       currentPlayer: "X",
+      room: roomName,
     });
   }
 };
 
-export function ResetGameButton({ socket }: { socket: Nullable<Socket> }) {
+export function ResetGameButton() {
+  const { socket, roomName } = useSocket();
   return (
-    <div className="flex flex-row justify-center p-[2px]">
+    <div className="flex flex-row p-[2px]">
       <button
         type="button"
         className="text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
-        onClick={() => resetSquares(socket!)}
+        onClick={() => resetSquares(socket, roomName)}
       >
         Reset
       </button>

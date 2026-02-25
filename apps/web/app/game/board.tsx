@@ -1,17 +1,21 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
-import { Nullable } from "../../global";
 import { WINNER } from "./page";
+import { GameConnectionStates, Nullable } from "@repo/shared-types";
 
 export function Board({
   squares,
   gameStatus,
+  connectionState,
   playerChar,
+  room,
   socket,
 }: {
   squares: ("" | "X" | "O")[];
   gameStatus: string;
+  connectionState: GameConnectionStates;
   playerChar: string;
+  room: string;
   socket: Nullable<Socket>;
 }) {
   const numNonEmptySquares = squares.filter((x) => x !== "").length;
@@ -20,7 +24,11 @@ export function Board({
     (numNonEmptySquares % 2 !== 0 && playerChar === "X");
 
   const click = (index: number): void => {
-    if (squares[index] || gameStatus === WINNER) {
+    if (
+      squares[index] ||
+      gameStatus === WINNER ||
+      connectionState !== "connected"
+    ) {
       return;
     } else if (isWrongTurn) {
       return;
@@ -35,6 +43,7 @@ export function Board({
         squares: squaresCopy,
         status: gameStatus,
         currentPlayer: playerChar === "X" ? "O" : "X",
+        room,
       });
     }
   };

@@ -1,4 +1,5 @@
 import "./globals.css";
+import { SocketProvider } from "./socketContext";
 
 export default function RootLayout({
   children,
@@ -7,7 +8,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="h-screen">
+        <SocketProvider>{children}</SocketProvider>
+      </body>
     </html>
   );
 }

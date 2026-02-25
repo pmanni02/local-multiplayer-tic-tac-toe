@@ -1,0 +1,17 @@
+{
+  "name": "@repo/shared-types",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "types": "./shared.ts",
+  "exports": {
+    "shared": "./shared.ts",
+    "default": "./shared.js"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "latest"
+  }
+}
