@@ -20,6 +20,8 @@
   --color-dark-orange: #F58A07;
   --color-light-orange: #F9AB55;
   --color-light-pink: #F7F5FB;
+  --color-light-green: #A5D0A8;
+  --color-lipstick-red: #EC0B43;
 }
 
 @media (prefers-color-scheme: dark) {

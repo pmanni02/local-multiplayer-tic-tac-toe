@@ -20,7 +20,7 @@ export function Square({
   return (
     <div>
       <button
-        className={`${color} font-bold p-0.5 w-25 h-25 bg-slate-500/50 border border-slate-600/30 ${transitionStyle} hover:bg-slate-500/60 shadow-md rounded-sm`}
+        className={`${color} font-bold text-2xl p-0.5 w-25 h-25 shadow-md bg-dark-blue border border-slate-600/30 ${transitionStyle} hover:shadow-md rounded-sm`}
         onClick={onClickFn}
       >
         {value}

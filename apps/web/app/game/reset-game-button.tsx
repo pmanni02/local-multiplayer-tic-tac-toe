@@ -23,14 +23,12 @@ const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
 export function ResetGameButton() {
   const { socket, roomName } = useSocket();
   return (
-    <div className="flex flex-row p-[2px]">
       <button
         type="button"
-        className="text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
+        className="text-white bg-dark-orange py-2 px-4 rounded shadow-md"
         onClick={() => resetSquares(socket, roomName)}
       >
         Reset
       </button>
-    </div>
   );
 }

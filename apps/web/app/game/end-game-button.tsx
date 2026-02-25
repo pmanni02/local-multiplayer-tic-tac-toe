@@ -16,14 +16,14 @@ const endGame = (socket: Nullable<Socket>) => {
   }
 };
 
-export function EndsGameButton() {
+export function EndGameButton() {
   const { socket } = useSocket();
   const [openModal, setOpenModal] = useState(false)
 
   return (
     <>
       {/* Modal Toggle */}
-      <button type="button" onClick={() => setOpenModal(true)} className="text-white bg-red-500 hover:bg-red-700 py-2 px-4 rounded">Leave Game</button>
+      <button type="button" onClick={() => setOpenModal(true)} className="text-white bg-lipstick-red py-2 px-4 rounded shadow-md">End</button>
 
       <div className="flex flex-row p-[2px]">
         {/* Modal */}

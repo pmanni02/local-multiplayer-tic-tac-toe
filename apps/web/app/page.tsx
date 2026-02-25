@@ -33,9 +33,13 @@ export default function Page() {
   return (
     <>
       {/* flex justify-center content-center h-screen items-center */}
-      <div className="flex flex-col justify-center content-center h-screen items-centez bg-light-blue">
+      <div className="flex flex-col justify-center content-center h-screen items-center bg-light-blue">
         <h1 className="flex text-7xl font-bold tracking-wide text-dark-blue text-shadow-md justify-center pb-5">
           TIC TAC TOE
+          {/* TODO: enable connection indicator */}
+          {/* <span
+          className={`w-3 h-3 bg-${connectionColor} rounded-full me-1.5 ml-2.5 mt-2`}
+        ></span> */}
         </h1>
         <div className="flex flex-row justify-center gap-3 pt-5">
           <div className="text-shadow-md">

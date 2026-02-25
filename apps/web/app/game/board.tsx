@@ -49,7 +49,7 @@ export function Board({
   };
 
   return (
-    <div className="flex flex-col bg-black">
+    <div className="flex flex-col">
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
         <Square
           value={squares[0]!}

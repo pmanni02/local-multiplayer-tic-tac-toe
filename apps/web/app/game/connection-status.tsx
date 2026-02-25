@@ -7,22 +7,18 @@ export function ConnectionStatus({
   connectionState: GameConnectionStates;
   connectionMessage: string;
 }) {
-  let connectionColor: string = "";
+  let connectionColor: string = "text-light-orange";
   if (connectionState === "connected") {
-    connectionColor = "bg-green-500";
+    connectionColor = "text-light-green";
   } else if (connectionState === "disconnected") {
-    connectionColor = "bg-red-500";
+    connectionColor = "text-lipstick-red";
   } else if (connectionState === "pendingGame") {
-    connectionColor = "bg-orange-500";
+    connectionColor = "text-light-orange";
   }
   return (
     <>
-      <div className="flex flex-row group w-50">
-        <span
-          className={`w-3 h-3 ${connectionColor} rounded-full me-1.5 ml-2.5 mt-2`}
-        ></span>
-
-        <p className="text-black hidden group-hover:block text-sm text-white">
+      <div className="flex flex-row group w-full justify-center">
+        <p className={`flex ${connectionColor} font-bold lowercase tracking-wide`}>
           {connectionMessage}
         </p>
       </div>

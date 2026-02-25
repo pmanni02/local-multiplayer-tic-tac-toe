@@ -5,14 +5,15 @@ import { ResetGameButton } from "./reset-game-button";
 import { Board } from "./board";
 import { GameInfo } from "./game-info";
 import { useSocket } from "../socketContext";
-import { ConnectionStatus } from "./connection-status";
-import { EndsGameButton } from "./end-game-button";
+// import { ConnectionStatus } from "./connection-status";
+import { EndGameButton } from "./end-game-button";
 import {
   EventsMessageToClient,
   GameConnectionStates,
   GameInitializedMessage,
   GameStatusMessage,
 } from "@repo/shared-types";
+import { ConnectionStatus } from "./connection-status";
 
 export const WINNER = "WINNER!";
 export const TIE = "TIE!";
@@ -96,15 +97,9 @@ export default function Game() {
 
   return (
     <>
-      <div className="flex justify-center content-center h-screen items-center">
-        <div className="flex flex-col w-100 h-100">
-          <span className="flex justify-center text-xl font-bold text-white bg-black text-heading rounded-t-md">
-            Regular
-            <ConnectionStatus
-              connectionState={gameConnectionState}
-              connectionMessage={connectionMessage}
-            />
-          </span>
+      <div className="flex justify-center content-center h-screen items-center bg-light-blue">
+        <div className="flex flex-col gap-y-2">
+          <ConnectionStatus connectionState={gameConnectionState} connectionMessage={connectionMessage}/>
           <Board
             squares={squares}
             gameStatus={gameStatus}
@@ -113,15 +108,15 @@ export default function Game() {
             room={roomName}
             socket={socket}
           />
+          <div className="flex flex-row justify-center gap-2 p-[2px]">
+            <ResetGameButton />
+            <EndGameButton />
+          </div>
           <GameInfo
             playerChar={playerChar}
             roomName={roomName}
             gameStatus={gameStatus}
           />
-          <div className="flex flex-row justify-center gap-1">
-            <ResetGameButton />
-            <EndsGameButton />
-          </div>
         </div>
       </div>
     </>
