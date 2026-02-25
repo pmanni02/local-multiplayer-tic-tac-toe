@@ -32,7 +32,8 @@ export default function Page() {
 
   return (
     <>
-      <div className="flex flex-col gap-2 w-120 h-60 p-5 m-5 bg-gray-500 rounded-md">
+      {/* flex justify-center content-center h-screen items-center */}
+      <div className="flex flex-col justify-center content-center h-screen items-center bg-gray-500">
         <h1 className="flex text-3xl justify-center">Tic Tac Toe</h1>
         <p className="flex text-md font-medium justify-center">
           ROOM: {roomName}
