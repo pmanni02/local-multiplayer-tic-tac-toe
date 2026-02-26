@@ -28,6 +28,7 @@ export default function Game() {
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
   const [gameStatus, setGameStatus] = useState("");
+  const [currentPlayer, setCurrentPlayer] = useState("")
 
   // TODO: add users to handle reconnection/page refresh
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function Game() {
 
           // default first turn to client with 'X' playerChar
           setGameStatus(`X`);
+          setCurrentPlayer('X')
         }
       }
 
@@ -67,6 +69,7 @@ export default function Game() {
       }: EventsMessageToClient) {
         setSquares(squares);
         setGameStatus(status);
+        setCurrentPlayer(currentPlayer)
 
         if (gameWon(squares)) {
           setGameStatus(WINNER);
@@ -100,12 +103,15 @@ export default function Game() {
           <ConnectionStatus
             connectionState={gameConnectionState}
             connectionMessage={connectionMessage}
+            currentPlayer={currentPlayer}
+            playerChar={playerChar}
           />
           <Board
             squares={squares}
             gameStatus={gameStatus}
             connectionState={gameConnectionState}
             playerChar={playerChar}
+            currentPlayer={currentPlayer}
             room={roomName}
             socket={socket}
           />
@@ -114,9 +120,9 @@ export default function Game() {
             <EndGameButton />
           </div>
           <GameInfo
-            playerChar={playerChar}
+            // playerChar={playerChar}
             roomName={roomName}
-            gameStatus={gameStatus}
+          // gameStatus={gameStatus}
           />
         </div>
       </div>

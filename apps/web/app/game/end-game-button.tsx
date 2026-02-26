@@ -3,9 +3,8 @@ import { Socket } from "socket.io-client";
 import { useSocket } from "../socketContext";
 import Link from "next/link";
 import { Nullable } from "@repo/shared-types";
-import { Modal, ModalHeader, ModalBody, createTheme } from "flowbite-react";
+import { Modal, ModalHeader, ModalBody } from "flowbite-react";
 import { useState } from "react";
-import { CustomFlowbiteTheme } from "flowbite-react/types";
 
 // TODO:
 // - create modal to confirm if player wants to end the game (DONE)

@@ -8,6 +8,7 @@ export function Board({
   gameStatus,
   connectionState,
   playerChar,
+  currentPlayer,
   room,
   socket,
 }: {
@@ -15,36 +16,33 @@ export function Board({
   gameStatus: string;
   connectionState: GameConnectionStates;
   playerChar: string;
+  currentPlayer: string;
   room: string;
   socket: Nullable<Socket>;
 }) {
-  const numNonEmptySquares = squares.filter((x) => x !== "").length;
-  const isWrongTurn =
-    (numNonEmptySquares % 2 === 0 && playerChar === "O") ||
-    (numNonEmptySquares % 2 !== 0 && playerChar === "X");
+  const isWrongTurn = currentPlayer !== playerChar;
 
   const click = (index: number): void => {
     if (
       squares[index] ||
       gameStatus === WINNER ||
-      connectionState !== "connected"
+      connectionState !== "connected" ||
+      isWrongTurn
     ) {
       return;
-    } else if (isWrongTurn) {
-      return;
-    }
+    } else {
+      const squaresCopy: string[] = squares.slice();
+      squaresCopy[index] = playerChar;
 
-    const squaresCopy: string[] = squares.slice();
-    squaresCopy[index] = playerChar;
-
-    // emit message
-    if (socket) {
-      socket.emit("events", {
-        squares: squaresCopy,
-        status: gameStatus,
-        currentPlayer: playerChar === "X" ? "O" : "X",
-        room,
-      });
+      // emit message
+      if (socket) {
+        socket.emit("events", {
+          squares: squaresCopy,
+          status: gameStatus,
+          currentPlayer: playerChar === "X" ? "O" : "X",
+          room,
+        });
+      }
     }
   };
 
