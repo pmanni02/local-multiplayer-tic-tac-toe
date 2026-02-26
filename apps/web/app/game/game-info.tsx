@@ -1,12 +1,22 @@
-function TextInfo({ description, value, id }: { description: string, value: string, id: string }) {
+function TextInfo({
+  description,
+  value,
+  id,
+}: {
+  description: string;
+  value: string;
+  id: string;
+}) {
   return (
     <>
       <p id={id} className="">
-        <span id='key' className="text-md font-bold text-shadow-md">{description}: </span>
+        <span id="key" className="text-md font-bold text-shadow-md">
+          {description}:{" "}
+        </span>
         {value}
       </p>
     </>
-  )
+  );
 }
 
 export function GameInfo({

@@ -23,12 +23,12 @@ const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
 export function ResetGameButton() {
   const { socket, roomName } = useSocket();
   return (
-      <button
-        type="button"
-        className="text-white bg-dark-orange py-2 px-4 rounded shadow-md"
-        onClick={() => resetSquares(socket, roomName)}
-      >
-        Reset
-      </button>
+    <button
+      type="button"
+      className="text-white bg-dark-orange py-2 px-4 rounded shadow-md"
+      onClick={() => resetSquares(socket, roomName)}
+    >
+      Reset
+    </button>
   );
 }

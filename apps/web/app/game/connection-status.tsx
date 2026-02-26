@@ -18,7 +18,9 @@ export function ConnectionStatus({
   return (
     <>
       <div className="flex flex-row group w-full justify-center">
-        <p className={`flex ${connectionColor} font-bold lowercase tracking-wide`}>
+        <p
+          className={`flex ${connectionColor} font-bold lowercase tracking-wide`}
+        >
           {connectionMessage}
         </p>
       </div>

@@ -56,10 +56,10 @@ export default function Page() {
               gameType={selectedGameTypeOption?.value}
             />
           </div>
-
         </div>
         <p className="flex justify-center pt-3">
-          <span className="text-md font-bold text-shadow-md">ROOM: </span>{roomName}
+          <span className="text-md font-bold text-shadow-md">ROOM: </span>
+          {roomName}
         </p>
       </div>
     </>

@@ -51,8 +51,7 @@ export default function Game() {
       }
 
       // TODO: create type for valid statuses
-      function onGameStatus({ message, status }: GameStatusMessage
-      ) {
+      function onGameStatus({ message, status }: GameStatusMessage) {
         if (status === "pendingGame" || status === "opponentLeft") {
           setGameConnectionState("pendingGame");
         } else if (status === "ready") {
@@ -65,8 +64,7 @@ export default function Game() {
         squares,
         status,
         currentPlayer,
-      }: EventsMessageToClient
-      ) {
+      }: EventsMessageToClient) {
         setSquares(squares);
         setGameStatus(status);
 
@@ -99,7 +97,10 @@ export default function Game() {
     <>
       <div className="flex justify-center content-center h-screen items-center bg-light-blue">
         <div className="flex flex-col gap-y-2">
-          <ConnectionStatus connectionState={gameConnectionState} connectionMessage={connectionMessage}/>
+          <ConnectionStatus
+            connectionState={gameConnectionState}
+            connectionMessage={connectionMessage}
+          />
           <Board
             squares={squares}
             gameStatus={gameStatus}
