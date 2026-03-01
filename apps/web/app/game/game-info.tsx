@@ -9,7 +9,7 @@ function TextInfo({
 }) {
   return (
     <>
-      <p id={id} className="">
+      <p id={id}>
         <span id="key" className="text-md font-bold text-shadow-md">
           {description}:{" "}
         </span>
@@ -25,8 +25,6 @@ export function GameInfo({
   roomName: string;
 }) {
   return (
-    <div className="flex justify-center gap-5 rounded-b-md text-black items-center text-m">
       <TextInfo description="Room" value={roomName} id="game-room" />
-    </div>
   );
 }

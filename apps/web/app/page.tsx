@@ -1,66 +1,29 @@
 "use client";
-import React, { useState } from "react";
-import { SingleValue } from "react-select";
+import React from "react";
 import { StartGameButton } from "./start-game-button";
-import { ReactSelectOption } from "../global";
-import { SelectDropDown } from "./select-dropdown";
 import { useSocket } from "./socketContext";
-
-const gameTypeOptions: ReactSelectOption[] = [
-  { value: "regular", label: "regular" },
-  { value: "ultimate", label: "ultimate" },
-];
-
-const defaultGameTypeOption: ReactSelectOption = {
-  value: "regular",
-  label: "regular",
-};
+import { Tooltip } from "flowbite-react";
 
 export default function Page() {
   const { roomName } = useSocket();
 
-  const [selectedGameTypeOption, setSelectedGameTypeOption] =
-    useState<ReactSelectOption>(defaultGameTypeOption);
-
-  const handleGameTypeChange = (
-    selectedOption: SingleValue<ReactSelectOption> | null,
-  ) => {
-    if (selectedOption) {
-      setSelectedGameTypeOption(selectedOption);
-    }
-  };
-
   return (
     <>
-      {/* flex justify-center content-center h-screen items-center */}
-      <div className="flex flex-col justify-center content-center h-screen items-center bg-light-blue">
-        <h1 className="flex text-7xl font-bold tracking-wide text-dark-blue text-shadow-md justify-center pb-5">
+      <div className="flex flex-col justify-center content-center h-screen items-center bg-light-blue gap-y-5">
+        <h1 className="flex text-7xl font-bold tracking-wide text-dark-blue text-shadow-md justify-center">
           TIC TAC TOE
-          {/* TODO: enable connection indicator */}
-          {/* <span
-          className={`w-3 h-3 bg-${connectionColor} rounded-full me-1.5 ml-2.5 mt-2`}
-        ></span> */}
         </h1>
-        <div className="flex flex-row justify-center gap-3 pt-5">
-          <div className="text-shadow-md">
-            <SelectDropDown
-              defaultValue={defaultGameTypeOption}
-              selectedOption={selectedGameTypeOption}
-              allOptions={gameTypeOptions}
-              handleOptionChange={handleGameTypeChange}
-            />
-          </div>
-          <div className="text-shadow-md">
-            <StartGameButton
-              roomName={roomName}
-              gameType={selectedGameTypeOption?.value}
-            />
-          </div>
+        <div className="bg-dark-orange rounded font-normal text-black p-2 shadow-md">
+          <StartGameButton
+            roomName={roomName}
+            gameType="regular"
+          />
         </div>
-        <p className="flex justify-center pt-3">
-          <span className="text-md font-bold text-shadow-md">ROOM: </span>
-          {roomName}
-        </p>
+        <Tooltip className="" content={`Room: ${roomName} | Type: regular`} placement="bottom">
+          <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" strokeLinecap="square" strokeLinejoin="round" strokeWidth="2" d="M10 19H5a1 1 0 0 1-1-1v-1a3 3 0 0 1 3-3h2m10 1a3 3 0 0 1-3 3m3-3a3 3 0 0 0-3-3m3 3h1m-4 3a3 3 0 0 1-3-3m3 3v1m-3-4a3 3 0 0 1 3-3m-3 3h-1m4-3v-1m-2.121 1.879-.707-.707m5.656 5.656-.707-.707m-4.242 0-.707.707m5.656-5.656-.707.707M12 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+        </Tooltip>
       </div>
     </>
   );

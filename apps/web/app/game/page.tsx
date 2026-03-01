@@ -5,7 +5,6 @@ import { ResetGameButton } from "./reset-game-button";
 import { Board } from "./board";
 import { GameInfo } from "./game-info";
 import { useSocket } from "../socketContext";
-// import { ConnectionStatus } from "./connection-status";
 import { EndGameButton } from "./end-game-button";
 import {
   EventsMessageToClient,
@@ -119,11 +118,9 @@ export default function Game() {
             <ResetGameButton />
             <EndGameButton />
           </div>
-          <GameInfo
-            // playerChar={playerChar}
-            roomName={roomName}
-          // gameStatus={gameStatus}
-          />
+          <div className="flex justify-center gap-5 rounded-b-md text-black items-center text-m">
+            <GameInfo roomName={roomName} />
+          </div>
         </div>
       </div>
     </>
