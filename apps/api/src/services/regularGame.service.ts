@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { GameStatusMessage, Nullable } from '@repo/shared-types';
-import { Socket } from 'socket.io';
 
 interface RegularGame {
   numPlayers: number;
@@ -28,15 +26,15 @@ export class RegularGameService {
     return game;
   };
 
-  removePlayerBySocketId = (socket: Socket) => {
-    const roomAndGameInfo = this.getGameInfoBySocketId(socket.id);
+  removePlayerBySocketId = (socketId: string) => {
+    const roomAndGameInfo = this.getGameInfoBySocketId(socketId);
 
     // only update game map if socket.id has been assigned a room
     if (roomAndGameInfo) {
       const { roomName, game } = roomAndGameInfo;
 
       // delete socket info, update game
-      delete game.playerSocketInfo[socket.id];
+      delete game.playerSocketInfo[socketId];
       const updatedGame: RegularGame = {
         ...game,
         numPlayers: game.numPlayers - 1,
@@ -48,29 +46,23 @@ export class RegularGameService {
     }
   };
 
-  getOpenRoomNames = (): string[] => {
-    return [...this.roomToGameMap]
-      .filter(([_, game]) => {
-        return game.numPlayers <= 1;
-      })
-      .map(([name, _]) => name);
-  };
-
   setRoomToGameMap = (roomName: string, game: RegularGame): void => {
     this.roomToGameMap.set(roomName, game);
   };
 
-  isAlreadyConnected = (socketId: string) => {
-    return this.#getRoomBySocketId(socketId) === undefined ? false : true;
+  isAlreadyConnected = (socketId: string): boolean => {
+    return this.#getRoomAndGameInfoBySocketId(socketId) === undefined
+      ? false
+      : true;
   };
 
   getGameInfoBySocketId = (
     socketId: string,
   ): { roomName: string; game: RegularGame } | null => {
-    const room = this.#getRoomBySocketId(socketId);
+    const roomAndGameInfo = this.#getRoomAndGameInfoBySocketId(socketId);
 
-    if (room) {
-      const [name, game] = room;
+    if (roomAndGameInfo) {
+      const [name, game] = roomAndGameInfo;
       return {
         roomName: name,
         game,
@@ -80,7 +72,7 @@ export class RegularGameService {
   };
 
   getRoomName = () => {
-    const openRooms = this.getOpenRoomNames();
+    const openRooms = this.#getOpenRoomNames();
     let roomName: string;
     if (openRooms.length > 0) {
       roomName = openRooms[0];
@@ -88,6 +80,21 @@ export class RegularGameService {
       roomName = this.#addRoomAndGame();
     }
     return roomName;
+  };
+
+  #getOpenRoomNames = (): string[] => {
+    return [...this.roomToGameMap]
+      .filter(([_, game]) => {
+        return game.numPlayers <= 1;
+      })
+      .map(([name, _]) => name);
+  };
+
+  #getRoomAndGameInfoBySocketId = (socketId: string) => {
+    return [...this.roomToGameMap].find(([_, game]) => {
+      const socketIds = this.#getGameSocketIds(game);
+      return socketIds.includes(socketId);
+    });
   };
 
   // defaults to setting first connected client to 'X'
@@ -118,13 +125,6 @@ export class RegularGameService {
 
   #getNewRoomName = (): string => {
     return `room${this.roomToGameMap.size + 1}`;
-  };
-
-  #getRoomBySocketId = (socketId: string) => {
-    return [...this.roomToGameMap].find(([_, game]) => {
-      const socketIds = this.#getGameSocketIds(game);
-      return socketIds.includes(socketId);
-    });
   };
 
   #getGameSocketIds = (game: RegularGame) => {

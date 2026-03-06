@@ -45,7 +45,9 @@ export class EventsGateway
   }
 
   handleDisconnect(socket: Socket): void {
-    const updatedGame = this.regularGameService.removePlayerBySocketId(socket);
+    const updatedGame = this.regularGameService.removePlayerBySocketId(
+      socket.id,
+    );
 
     if (updatedGame) {
       if (updatedGame.numPlayers === 1) {
@@ -58,8 +60,6 @@ export class EventsGateway
       }
       this.regularGameService.printRoomToGameMap();
       console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
-    } else {
-      throw new Error(`issue disconnecting after leaving game`);
     }
   }
 
@@ -68,9 +68,8 @@ export class EventsGateway
     const roomName = this.regularGameService.getRoomName();
     this.regularGameService.printRoomToGameMap();
 
-    // join room
+    // join room, emit roomName
     void socket.join(roomName);
-
     this.server.to(roomName).emit('roomDetermined', { roomName });
     console.log(`[ROOM      | ${getTimeNow()}]: ${socket.id}, ${roomName}`);
   }
@@ -90,7 +89,6 @@ export class EventsGateway
         game,
         socket.id,
       );
-
       this.regularGameService.setRoomToGameMap(roomName, game);
       this.regularGameService.printRoomToGameMap();
 
@@ -126,7 +124,9 @@ export class EventsGateway
 
   @SubscribeMessage('gameEnded')
   handGameEnded(@ConnectedSocket() socket: Socket): void {
-    const updatedGame = this.regularGameService.removePlayerBySocketId(socket);
+    const updatedGame = this.regularGameService.removePlayerBySocketId(
+      socket.id,
+    );
 
     if (updatedGame) {
       if (updatedGame.numPlayers === 1) {
@@ -139,8 +139,6 @@ export class EventsGateway
       }
       this.regularGameService.printRoomToGameMap();
       console.log(`[LEFT GAME | ${getTimeNow()}]: ${socket.id}`);
-    } else {
-      throw new Error(`issue disconnecting after leaving game`);
     }
   }
 
