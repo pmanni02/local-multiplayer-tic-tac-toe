@@ -45,23 +45,28 @@ export class EventsGateway
   }
 
   handleDisconnect(socket: Socket): void {
-    this.regularGameService.removePlayerBySocketId(socket, 'disconnect');
+    const updatedGame = this.regularGameService.removePlayerBySocketId(socket);
 
-    console.log('GAME_MAP', this.regularGameService.getRoomToGameMap());
-    console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
+    if (updatedGame) {
+      if (updatedGame.numPlayers === 1) {
+        const opponentSocketId = Object.keys(updatedGame.playerSocketInfo)[0];
+        const msg = {
+          message: 'Opponent Disconnected',
+          status: 'pendingGame',
+        };
+        if (msg) socket.to(opponentSocketId).emit('gameStatus', msg);
+      }
+      this.regularGameService.printRoomToGameMap();
+      console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
+    } else {
+      throw new Error(`issue disconnecting after leaving game`);
+    }
   }
 
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
-    // determine roomName, get open room OR create new room
-    let roomName: string;
-    const openRooms = this.regularGameService.getOpenRoomNames();
-    if (openRooms.length > 0) {
-      roomName = openRooms[0];
-    } else {
-      roomName = this.regularGameService.addRoom('regular');
-    }
-    console.log('GAME_MAP', this.regularGameService.getRoomToGameMap());
+    const roomName = this.regularGameService.getRoomName();
+    this.regularGameService.printRoomToGameMap();
 
     // join room
     void socket.join(roomName);
@@ -80,17 +85,18 @@ export class EventsGateway
     const game = this.regularGameService.getGame(roomName);
 
     // if there is a game and socketId is not in gameMap already, update gameMap
-    if (game && !this.regularGameService.getGameInfoBySocketId(socket.id)) {
-      const playerChar = this.regularGameService.getPlayerChar(game);
-      game.numPlayers += 1;
-      game.playerSocketInfo[socket.id] = playerChar;
+    if (game && !this.regularGameService.isAlreadyConnected(socket.id)) {
+      const updatedGame = this.regularGameService.addPlayerBySocketId(
+        game,
+        socket.id,
+      );
 
       this.regularGameService.setRoomToGameMap(roomName, game);
-      console.log('GAME_MAP', this.regularGameService.getRoomToGameMap());
+      this.regularGameService.printRoomToGameMap();
 
       // send playerChar to connected socket
       this.server.to(socket.id).emit('setup', {
-        playerCharacter: playerChar,
+        playerCharacter: updatedGame.playerSocketInfo[socket.id],
       });
 
       let msg: Nullable<GameStatusMessage> = null;
@@ -109,9 +115,7 @@ export class EventsGateway
         };
       }
 
-      if (msg) {
-        this.server.to(roomName).emit('gameStatus', msg);
-      }
+      if (msg) this.server.to(roomName).emit('gameStatus', msg);
     }
 
     if (!game) {
@@ -122,21 +126,26 @@ export class EventsGateway
 
   @SubscribeMessage('gameEnded')
   handGameEnded(@ConnectedSocket() socket: Socket): void {
-    const isPlayerRemoved = this.regularGameService.removePlayerBySocketId(
-      socket,
-      'manual',
-    );
+    const updatedGame = this.regularGameService.removePlayerBySocketId(socket);
 
-    if (!isPlayerRemoved) {
-      throw new Error(`issue disconnecting after leaving game`);
-    } else {
-      console.log('GAME_MAP', this.regularGameService.getRoomToGameMap());
+    if (updatedGame) {
+      if (updatedGame.numPlayers === 1) {
+        const opponentSocketId = Object.keys(updatedGame.playerSocketInfo)[0];
+        const msg = {
+          message: 'Opponent Left Game',
+          status: 'opponentLeft',
+        };
+        if (msg) socket.to(opponentSocketId).emit('gameStatus', msg);
+      }
+      this.regularGameService.printRoomToGameMap();
       console.log(`[LEFT GAME | ${getTimeNow()}]: ${socket.id}`);
+    } else {
+      throw new Error(`issue disconnecting after leaving game`);
     }
   }
 
   @SubscribeMessage('broadcastGameEvent')
-  handleEvent(
+  handleBroadcastGameEvent(
     @MessageBody()
     data: {
       squares: string[];
