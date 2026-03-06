@@ -19,6 +19,11 @@ export class RegularGameService {
     return this.roomToGameMap.get(roomName);
   };
 
+  setGame = (roomName: string, game: RegularGame): void => {
+    this.roomToGameMap.set(roomName, game);
+  };
+
+  // update game
   addPlayerBySocketId = (game: RegularGame, socketId: string) => {
     const playerChar = this.#getPlayerChar(game);
     game.numPlayers += 1;
@@ -27,11 +32,12 @@ export class RegularGameService {
   };
 
   removePlayerBySocketId = (socketId: string) => {
-    const roomAndGameInfo = this.getGameInfoBySocketId(socketId);
+    // const roomAndGameInfo = this.getGameInfoBySocketId(socketId);
+    const roomAndGameInfo = this.getRoomAndGameInfoBySocketId(socketId);
 
     // only update game map if socket.id has been assigned a room
     if (roomAndGameInfo) {
-      const { roomName, game } = roomAndGameInfo;
+      const [roomName, game] = roomAndGameInfo;
 
       // delete socket info, update game
       delete game.playerSocketInfo[socketId];
@@ -46,32 +52,13 @@ export class RegularGameService {
     }
   };
 
-  setRoomToGameMap = (roomName: string, game: RegularGame): void => {
-    this.roomToGameMap.set(roomName, game);
-  };
-
-  isAlreadyConnected = (socketId: string): boolean => {
-    return this.#getRoomAndGameInfoBySocketId(socketId) === undefined
+  isPlayerConnected = (socketId: string): boolean => {
+    return this.getRoomAndGameInfoBySocketId(socketId) === undefined
       ? false
       : true;
   };
 
-  getGameInfoBySocketId = (
-    socketId: string,
-  ): { roomName: string; game: RegularGame } | null => {
-    const roomAndGameInfo = this.#getRoomAndGameInfoBySocketId(socketId);
-
-    if (roomAndGameInfo) {
-      const [name, game] = roomAndGameInfo;
-      return {
-        roomName: name,
-        game,
-      };
-    }
-    return null;
-  };
-
-  getRoomName = () => {
+  findOpenRoom = (): string => {
     const openRooms = this.#getOpenRoomNames();
     let roomName: string;
     if (openRooms.length > 0) {
@@ -90,7 +77,7 @@ export class RegularGameService {
       .map(([name, _]) => name);
   };
 
-  #getRoomAndGameInfoBySocketId = (socketId: string) => {
+  getRoomAndGameInfoBySocketId = (socketId: string) => {
     return [...this.roomToGameMap].find(([_, game]) => {
       const socketIds = this.#getGameSocketIds(game);
       return socketIds.includes(socketId);

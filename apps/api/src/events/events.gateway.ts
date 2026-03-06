@@ -65,13 +65,13 @@ export class EventsGateway
 
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
-    const roomName = this.regularGameService.getRoomName();
+    const openRoom = this.regularGameService.findOpenRoom();
     this.regularGameService.printRoomToGameMap();
 
     // join room, emit roomName
-    void socket.join(roomName);
-    this.server.to(roomName).emit('roomDetermined', { roomName });
-    console.log(`[ROOM      | ${getTimeNow()}]: ${socket.id}, ${roomName}`);
+    void socket.join(openRoom);
+    this.server.to(openRoom).emit('roomDetermined', { roomName: openRoom });
+    console.log(`[ROOM      | ${getTimeNow()}]: ${socket.id}, ${openRoom}`);
   }
 
   @SubscribeMessage('gameInitialized')
@@ -84,12 +84,12 @@ export class EventsGateway
     const game = this.regularGameService.getGame(roomName);
 
     // if there is a game and socketId is not in gameMap already, update gameMap
-    if (game && !this.regularGameService.isAlreadyConnected(socket.id)) {
+    if (game && !this.regularGameService.isPlayerConnected(socket.id)) {
       const updatedGame = this.regularGameService.addPlayerBySocketId(
         game,
         socket.id,
       );
-      this.regularGameService.setRoomToGameMap(roomName, game);
+      this.regularGameService.setGame(roomName, game);
       this.regularGameService.printRoomToGameMap();
 
       // send playerChar to connected socket
