@@ -13,11 +13,19 @@ export type RoomToGameMap = Map<string, Game>;
 export class RegularGameService {
   private readonly roomToGameMap: RoomToGameMap = new Map();
 
-  getGameToRoomMap = () => {
+  getRoomToGameMap = () => {
     return this.roomToGameMap;
   };
 
-  getOpenRoomName = (): string[] => {
+  getGame = (roomName: string) => {
+    return this.roomToGameMap.get(roomName);
+  };
+
+  setRoomToGameMap = (roomName: string, game: Game): void => {
+    this.roomToGameMap.set(roomName, game);
+  };
+
+  getOpenRoomNames = (): string[] => {
     const roomInfo = [...this.roomToGameMap].filter(([roomName, game]) => {
       return game.numPlayers <= 1;
     });
@@ -41,7 +49,7 @@ export class RegularGameService {
     return newRoomName;
   };
 
-  getRoomAndGameBySocketId = (
+  getGameInfoBySocketId = (
     socketId: string,
   ): { roomName: string; game: Game } | null => {
     const room = [...this.roomToGameMap].find(([_, game]) => {
@@ -79,7 +87,7 @@ export class RegularGameService {
     socket: Socket,
     reason: 'disconnect' | 'manual',
   ) => {
-    const roomAndGameInfo = this.getRoomAndGameBySocketId(socket.id);
+    const roomAndGameInfo = this.getGameInfoBySocketId(socket.id);
 
     // only update game map if socket.id has been assigned a room
     if (roomAndGameInfo) {

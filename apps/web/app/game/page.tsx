@@ -61,7 +61,7 @@ export default function Game() {
         setConnectionMessage(message);
       }
 
-      function onEvents({
+      function onBroadcastGameEvent({
         squares,
         status,
         currentPlayer,
@@ -81,7 +81,7 @@ export default function Game() {
 
       socket.on("setup", onSetup);
       socket.on("gameStatus", onGameStatus);
-      socket.on("events", onEvents);
+      socket.on("broadcastGameEvent", onBroadcastGameEvent);
     } else {
       setGameConnectionState("disconnected");
       setConnectionMessage("Disconnected");
@@ -89,7 +89,7 @@ export default function Game() {
 
     return () => {
       socket?.off("setup");
-      socket?.off("events");
+      socket?.off("broadcastGameEvent");
       socket?.off("gameStatus");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

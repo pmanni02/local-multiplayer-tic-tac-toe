@@ -40,14 +40,14 @@ export class EventsGateway
     this.regularGameService = new RegularGameService();
   }
 
-  handleConnection(socket: Socket) {
+  handleConnection(socket: Socket): void {
     console.log(`[CONNECTED | ${getTimeNow()}]: ${socket.id}`);
   }
 
-  handleDisconnect(socket: Socket) {
+  handleDisconnect(socket: Socket): void {
     this.regularGameService.removePlayerBySocketId(socket, 'disconnect');
 
-    console.log('GAME_MAP', this.regularGameService.getGameToRoomMap());
+    console.log('GAME_MAP', this.regularGameService.getRoomToGameMap());
     console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
   }
 
@@ -55,22 +55,18 @@ export class EventsGateway
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
     // determine roomName, get open room OR create new room
     let roomName: string;
-    const openRooms = this.regularGameService.getOpenRoomName();
+    const openRooms = this.regularGameService.getOpenRoomNames();
     if (openRooms.length > 0) {
       roomName = openRooms[0];
     } else {
       roomName = this.regularGameService.addRoom('regular');
     }
-    const roomToGameMap = this.regularGameService.getGameToRoomMap();
-    console.log('GAME_MAP', roomToGameMap);
+    console.log('GAME_MAP', this.regularGameService.getRoomToGameMap());
 
     // join room
     void socket.join(roomName);
 
-    const roomDeterminedMessage: RoomDeterminedMessage = {
-      roomName,
-    };
-    this.server.to(roomName).emit('roomDetermined', roomDeterminedMessage);
+    this.server.to(roomName).emit('roomDetermined', { roomName });
     console.log(`[ROOM      | ${getTimeNow()}]: ${socket.id}, ${roomName}`);
   }
 
@@ -81,15 +77,16 @@ export class EventsGateway
     @ConnectedSocket() socket: Socket,
   ): void {
     const { roomName } = data;
-    const game = this.regularGameService.getGameToRoomMap().get(roomName);
-    if (game && !this.regularGameService.getRoomAndGameBySocketId(socket.id)) {
+    const game = this.regularGameService.getGame(roomName);
+
+    // if there is a game and socketId is not in gameMap already, update gameMap
+    if (game && !this.regularGameService.getGameInfoBySocketId(socket.id)) {
       const playerChar = this.regularGameService.getPlayerChar(game);
       game.numPlayers += 1;
       game.playerSocketInfo[socket.id] = playerChar;
 
-      this.regularGameService.getGameToRoomMap().set(roomName, game);
-      const roomToGameMap = this.regularGameService.getGameToRoomMap();
-      console.log('GAME_MAP', roomToGameMap);
+      this.regularGameService.setRoomToGameMap(roomName, game);
+      console.log('GAME_MAP', this.regularGameService.getRoomToGameMap());
 
       // send playerChar to connected socket
       this.server.to(socket.id).emit('setup', {
@@ -99,7 +96,7 @@ export class EventsGateway
       let msg: Nullable<GameStatusMessage> = null;
       // check if player needs an opponent
       if (game.numPlayers === 1) {
-        // emit to self
+        // emit to self (only player room)
         msg = {
           message: 'Waiting for opponent',
           status: 'pendingGame',
@@ -118,7 +115,7 @@ export class EventsGateway
     }
 
     if (!game) {
-      throw new Error(`issue determine game/room info for: ${socket.id}`);
+      throw new Error(`issue determining game/room info for: ${socket.id}`);
     }
     console.log(`[GAME INIT | ${getTimeNow()}]: ${socket.id}`);
   }
@@ -132,13 +129,13 @@ export class EventsGateway
 
     if (!isPlayerRemoved) {
       throw new Error(`issue disconnecting after leaving game`);
+    } else {
+      console.log('GAME_MAP', this.regularGameService.getRoomToGameMap());
+      console.log(`[LEFT GAME | ${getTimeNow()}]: ${socket.id}`);
     }
-
-    console.log('GAME_MAP', this.regularGameService.getGameToRoomMap());
-    console.log(`[LEFT GAME | ${getTimeNow()}]: ${socket.id}`);
   }
 
-  @SubscribeMessage('events')
+  @SubscribeMessage('broadcastGameEvent')
   handleEvent(
     @MessageBody()
     data: {
@@ -153,6 +150,6 @@ export class EventsGateway
       status: data.status,
       currentPlayer: data.currentPlayer,
     };
-    this.server.to(data.room).emit('events', eventsMessage);
+    this.server.to(data.room).emit('broadcastGameEvent', eventsMessage);
   }
 }

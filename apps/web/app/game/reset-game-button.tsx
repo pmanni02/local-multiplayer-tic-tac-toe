@@ -11,7 +11,7 @@ import { Nullable } from "@repo/shared-types";
 const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
   const newSquares = Array(9).fill("");
   if (socket) {
-    socket.emit("events", {
+    socket.emit("broadcastGameEvent", {
       squares: newSquares,
       status: "",
       currentPlayer: "X",
