@@ -36,7 +36,7 @@ export function Board({
 
       // emit message
       if (socket) {
-        socket.emit("broadcastGameEvent", {
+        socket.emit("gameEvent", {
           squares: squaresCopy,
           status: gameStatus,
           currentPlayer: playerChar === "X" ? "O" : "X",

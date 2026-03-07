@@ -142,7 +142,7 @@ export class EventsGateway
     }
   }
 
-  @SubscribeMessage('broadcastGameEvent')
+  @SubscribeMessage('gameEvent')
   handleBroadcastGameEvent(
     @MessageBody()
     data: {
@@ -157,6 +157,6 @@ export class EventsGateway
       status: data.status,
       currentPlayer: data.currentPlayer,
     };
-    this.server.to(data.room).emit('broadcastGameEvent', eventsMessage);
+    this.server.to(data.room).emit('gameEvent', eventsMessage);
   }
 }
