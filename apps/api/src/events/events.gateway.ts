@@ -45,6 +45,23 @@ export class EventsGateway
   }
 
   handleDisconnect(socket: Socket): void {
+    const msg = {
+      message: 'Opponent Disconnected',
+      status: 'pendingGame',
+    };
+    this.handleDisconnectEvent(msg, socket);
+  }
+
+  @SubscribeMessage('gameEnded')
+  handGameEnded(@ConnectedSocket() socket: Socket): void {
+    const msg = {
+      message: 'Opponent Left Game',
+      status: 'opponentLeft',
+    };
+    this.handleDisconnectEvent(msg, socket);
+  }
+
+  private handleDisconnectEvent(msg: Record<string, string>, socket: Socket) {
     const room = this.roomsManagerService.getRoomBySocketId(socket.id);
     room?.game.removePlayerBySocketId(socket.id);
     const remainingPlayers = room?.game.getPlayers();
@@ -53,10 +70,6 @@ export class EventsGateway
     if (remainingPlayers) {
       if (remainingPlayers.length === 1) {
         const opponentSocketId = remainingPlayers[0].getPlayerInfo().socketId;
-        const msg = {
-          message: 'Opponent Disconnected',
-          status: 'pendingGame',
-        };
         if (msg) socket.to(opponentSocketId).emit('gameStatus', msg);
       }
       console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
@@ -98,7 +111,6 @@ export class EventsGateway
     // if there is a game and socketId is not in gameMap already, update gameMap
     if (room) {
       let msg: Nullable<GameStatusMessage> = null;
-      // check if player needs an opponent
       if (room.game.getPlayers().length === 1) {
         // emit to self (only player room)
         msg = {
@@ -118,27 +130,6 @@ export class EventsGateway
 
     if (!room) {
       throw new Error(`issue determining game/room info for: ${socket.id}`);
-    }
-    console.log(`[GAME INIT | ${getTimeNow()}]: ${socket.id}`);
-  }
-
-  @SubscribeMessage('gameEnded')
-  handGameEnded(@ConnectedSocket() socket: Socket): void {
-    const room = this.roomsManagerService.getRoomBySocketId(socket.id);
-    room?.game.removePlayerBySocketId(socket.id);
-    const remainingPlayers = room?.game.getPlayers();
-    room?.printRoom();
-
-    if (remainingPlayers) {
-      if (remainingPlayers.length === 1) {
-        const opponentSocketId = remainingPlayers[0].getPlayerInfo().socketId;
-        const msg = {
-          message: 'Opponent Left Game',
-          status: 'opponentLeft',
-        };
-        if (msg) socket.to(opponentSocketId).emit('gameStatus', msg);
-      }
-      console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
     }
   }
 
