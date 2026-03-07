@@ -20,7 +20,7 @@ const SocketContext = createContext<ContextType | undefined>(undefined);
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<null | Socket>(null);
   const [room, setRoom] = useState("");
-  const [playerChar, setPlayerChar] = useState("")
+  const [playerChar, setPlayerChar] = useState("");
 
   useEffect(() => {
     if (!socket) {
@@ -37,7 +37,10 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         mySocket.emit("playerConnected");
       }
 
-      function onRoomDetermined({ roomName, playerChar }: RoomDeterminedMessage) {
+      function onRoomDetermined({
+        roomName,
+        playerChar,
+      }: RoomDeterminedMessage) {
         setRoom(roomName);
         setPlayerChar(playerChar);
         console.log(`[ROOM]: ${roomName} | [CHAR]: ${playerChar}`);

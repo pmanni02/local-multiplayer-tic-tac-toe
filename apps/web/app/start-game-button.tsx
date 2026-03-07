@@ -9,7 +9,9 @@ export function StartGameButton({
   roomName: Nullable<string>;
 }) {
   return (
-    <Link href={{ pathname: `/game`, query: { room: roomName, type: gameType } }}>
+    <Link
+      href={{ pathname: `/game`, query: { room: roomName, type: gameType } }}
+    >
       Start
     </Link>
   );

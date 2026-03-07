@@ -167,34 +167,3 @@ export class RoomsManagerService {
     return `room${this.rooms.size + 1}`;
   };
 }
-
-// // init
-// const myRoomsManagerService = new RoomsManagerService();
-// console.log('myRoomsManagerService', myRoomsManagerService);
-
-// // playerConnected
-// const myRoom = myRoomsManagerService.findOpenRoom(); // ALL rooms are initialized with a game
-// console.log('myRoom', myRoom);
-
-// // gameInitialized
-// // NOTE: would likely get room by name (in event msg)
-// const myExistingRoom = myRoomsManagerService.getRoomByName('room1');
-// if (myExistingRoom) {
-//   const myGame = myExistingRoom.game;
-//   myGame.addPlayer({ socketId: '456', userId: '333', gameChar: 'O' });
-//   myGame.addPlayer({ socketId: '123', userId: '444', gameChar: 'X' });
-//   console.log('myGame', myGame);
-
-//   // disconnect
-//   myGame.removePlayerBySocketId('123');
-//   console.log('disconnected player');
-//   myRoom.printGame();
-//   console.log('---------');
-// }
-
-// // TEST
-// const myRoomCheck = myRoomsManagerService.getRoomByName(myRoom.name);
-// const myGameCheck = myRoomCheck?.game;
-// const myPlayersCheck = myGameCheck?.getPlayers();
-// console.assert(myPlayersCheck?.length === 1, 'a single player still exists');
-// console.log('myPlayersCheck', myPlayersCheck);

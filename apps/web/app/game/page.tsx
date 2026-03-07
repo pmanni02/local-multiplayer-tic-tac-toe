@@ -25,15 +25,15 @@ export default function Game() {
   const [connectionMessage, setConnectionMessage] = useState("...");
 
   const [squares, setSquares] = useState(Array(9).fill(""));
-  
+
   // displays win/tie and current turn
   const [gameStatus, setGameStatus] = useState("");
-  const [currentPlayer, setCurrentPlayer] = useState("")
+  const [currentPlayer, setCurrentPlayer] = useState("");
 
   // TODO: add users to handle reconnection/page refresh
   useEffect(() => {
     if (socket && roomName && playerChar) {
-      console.log('playerChar', playerChar)
+      console.log("playerChar", playerChar);
       // get player character, room
       const gameInitializedMessage: GameInitializedMessage = {
         roomName,
@@ -42,7 +42,7 @@ export default function Game() {
 
       // default first turn to player 'X'
       setGameStatus(`X`);
-      setCurrentPlayer('X') 
+      setCurrentPlayer("X");
 
       // TODO: create type for valid statuses
       function onGameStatus({ message, status }: GameStatusMessage) {
@@ -61,7 +61,7 @@ export default function Game() {
       }: EventsMessageToClient) {
         setSquares(squares);
         setGameStatus(status);
-        setCurrentPlayer(currentPlayer)
+        setCurrentPlayer(currentPlayer);
 
         if (gameWon(squares)) {
           setGameStatus(WINNER);
@@ -75,7 +75,7 @@ export default function Game() {
       socket.on("gameStatus", onGameStatus);
       socket.on("gameEvent", onBroadcastGameEvent);
     } else {
-      console.error('Issue initializing socket context provider')
+      console.error("Issue initializing socket context provider");
       setGameConnectionState("disconnected");
       setConnectionMessage("Disconnected");
     }
