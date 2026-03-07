@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
 import { StartGameButton } from "./start-game-button";
-import { useSocket } from "./socketContext";
+import { useSocketContext } from "./socketContext";
 import { Tooltip } from "flowbite-react";
 
 export default function Page() {
-  const { roomName } = useSocket();
+  const { roomName } = useSocketContext();
 
   return (
     <>

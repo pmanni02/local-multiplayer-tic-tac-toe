@@ -4,7 +4,7 @@ import { gameTie, gameWon } from "../game-utils";
 import { ResetGameButton } from "./reset-game-button";
 import { Board } from "./board";
 import { GameInfo } from "./game-info";
-import { useSocket } from "../socketContext";
+import { useSocketContext } from "../socketContext";
 import { EndGameButton } from "./end-game-button";
 import {
   EventsMessageToClient,
@@ -18,7 +18,7 @@ export const WINNER = "WINNER!";
 export const TIE = "TIE!";
 
 export default function Game() {
-  const { socket, roomName } = useSocket();
+  const { socket, roomName } = useSocketContext();
 
   const [gameConnectionState, setGameConnectionState] =
     useState<GameConnectionStates>("pendingGame");

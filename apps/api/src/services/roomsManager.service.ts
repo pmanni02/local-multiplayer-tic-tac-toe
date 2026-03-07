@@ -39,8 +39,8 @@ export class Game {
   }
 
   addPlayer({ socketId, gameChar, userId }: PlayerT): boolean {
-    const player = new Player({ socketId, gameChar, userId });
     if (this.players.length <= 1) {
+      const player = new Player({ socketId, gameChar, userId });
       this.players.push(player);
       return true;
     }
@@ -52,12 +52,9 @@ export class Game {
   }
 
   removePlayerBySocketId(socketId: string) {
-    // only keep players with different ids
-    const filteredPlayers = this.players.filter(
+    this.players = this.players.filter(
       (player) => player.getPlayerInfo().socketId !== socketId,
     );
-
-    this.players = filteredPlayers;
   }
 
   getStatus(): string {
@@ -71,8 +68,8 @@ export class Game {
 
 @Injectable()
 export class Room {
-  private name: string;
-  private game: Game;
+  name: string;
+  game: Game;
 
   // create a game everytime a new room is created
   constructor(name: string) {
@@ -80,16 +77,8 @@ export class Room {
     this.game = new Game();
   }
 
-  getGame(): Game {
-    return this.game;
-  }
-
-  setGame(game: Game) {
-    this.game = game;
-  }
-
-  getName() {
-    return this.name;
+  printGame() {
+    console.log(this.game);
   }
 }
 
@@ -116,7 +105,7 @@ export class RoomsManagerService {
   findOpenRoom(): Room {
     const openRooms = [...this.rooms]
       .filter(([_, room]) => {
-        return room.getGame().getPlayers().length <= 1;
+        return room.game.getPlayers().length <= 1;
       })
       .map(([_, room]) => {
         return room;
@@ -145,28 +134,33 @@ export class RoomsManagerService {
   };
 }
 
-// init
-const myRoomsManagerService = new RoomsManagerService();
-console.log('myRoomsManagerService', myRoomsManagerService);
+// // init
+// const myRoomsManagerService = new RoomsManagerService();
+// console.log('myRoomsManagerService', myRoomsManagerService);
 
-// playerConnected
-const myRoom = myRoomsManagerService.findOpenRoom(); // ALL rooms are initialized with a game
-console.log('myRoom', myRoom);
+// // playerConnected
+// const myRoom = myRoomsManagerService.findOpenRoom(); // ALL rooms are initialized with a game
+// console.log('myRoom', myRoom);
 
-// gameInitialized
-const myGame = myRoom.getGame();
-myGame.addPlayer({ socketId: '456', userId: '333', gameChar: 'O' });
-myGame.addPlayer({ socketId: '123', userId: '444', gameChar: 'X' });
-console.log('myGame', myGame);
+// // gameInitialized
+// // NOTE: would likely get room by name (in event msg)
+// const myExistingRoom = myRoomsManagerService.getRoomByName('room1');
+// if (myExistingRoom) {
+//   const myGame = myExistingRoom.game;
+//   myGame.addPlayer({ socketId: '456', userId: '333', gameChar: 'O' });
+//   myGame.addPlayer({ socketId: '123', userId: '444', gameChar: 'X' });
+//   console.log('myGame', myGame);
 
-// disconnect
-myGame.removePlayerBySocketId('123');
-console.log('disconnected player');
-console.log('myGame', myGame);
+//   // disconnect
+//   myGame.removePlayerBySocketId('123');
+//   console.log('disconnected player');
+//   myRoom.printGame();
+//   console.log('---------');
+// }
 
-// TEST
-const myRoomCheck = myRoomsManagerService.getRoomByName(myRoom.getName());
-const myGameCheck = myRoomCheck?.getGame();
-const myPlayersCheck = myGameCheck?.getPlayers();
-console.assert(myPlayersCheck?.length === 1, 'a single player still exists');
-console.log('myPlayersCheck', myPlayersCheck);
+// // TEST
+// const myRoomCheck = myRoomsManagerService.getRoomByName(myRoom.name);
+// const myGameCheck = myRoomCheck?.game;
+// const myPlayersCheck = myGameCheck?.getPlayers();
+// console.assert(myPlayersCheck?.length === 1, 'a single player still exists');
+// console.log('myPlayersCheck', myPlayersCheck);
