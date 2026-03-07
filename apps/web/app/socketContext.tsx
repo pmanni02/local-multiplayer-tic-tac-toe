@@ -12,6 +12,7 @@ import { io, Socket } from "socket.io-client";
 type ContextType = {
   socket: Socket | null;
   roomName: string;
+  playerChar: string;
 };
 
 const SocketContext = createContext<ContextType | undefined>(undefined);
@@ -19,6 +20,7 @@ const SocketContext = createContext<ContextType | undefined>(undefined);
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<null | Socket>(null);
   const [room, setRoom] = useState("");
+  const [playerChar, setPlayerChar] = useState("")
 
   useEffect(() => {
     if (!socket) {
@@ -35,9 +37,10 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         mySocket.emit("playerConnected");
       }
 
-      function onRoomDetermined({ roomName }: RoomDeterminedMessage) {
+      function onRoomDetermined({ roomName, playerChar }: RoomDeterminedMessage) {
         setRoom(roomName);
-        console.log(`[ROOM]: ${roomName}`);
+        setPlayerChar(playerChar);
+        console.log(`[ROOM]: ${roomName} | [CHAR]: ${playerChar}`);
       }
 
       function onDisconnect() {
@@ -51,8 +54,6 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       setSocket(mySocket);
 
       return () => {
-        // mySocket.off("connect");
-        // mySocket.off("disconnect");
         mySocket.disconnect();
       };
     }
@@ -62,6 +63,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const contextValue: ContextType = {
     socket,
     roomName: room,
+    playerChar,
   };
 
   return (

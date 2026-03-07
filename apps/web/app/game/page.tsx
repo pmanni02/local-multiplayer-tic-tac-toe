@@ -18,38 +18,31 @@ export const WINNER = "WINNER!";
 export const TIE = "TIE!";
 
 export default function Game() {
-  const { socket, roomName } = useSocketContext();
+  const { socket, roomName, playerChar } = useSocketContext();
 
   const [gameConnectionState, setGameConnectionState] =
     useState<GameConnectionStates>("pendingGame");
   const [connectionMessage, setConnectionMessage] = useState("...");
 
   const [squares, setSquares] = useState(Array(9).fill(""));
-  const [playerChar, setPlayerChar] = useState<"X" | "O" | "">("");
+  
+  // displays win/tie and current turn
   const [gameStatus, setGameStatus] = useState("");
   const [currentPlayer, setCurrentPlayer] = useState("")
 
   // TODO: add users to handle reconnection/page refresh
   useEffect(() => {
-    if (socket && roomName) {
+    if (socket && roomName && playerChar) {
+      console.log('playerChar', playerChar)
       // get player character, room
       const gameInitializedMessage: GameInitializedMessage = {
         roomName,
       };
       socket.emit("gameInitialized", gameInitializedMessage);
 
-      function onSetup({ playerCharacter }: { playerCharacter: string }) {
-        console.log(
-          `[SETUP]: player char: ${playerCharacter}, room: ${roomName}`,
-        );
-        if (playerCharacter === "X" || playerCharacter === "O") {
-          setPlayerChar(playerCharacter);
-
-          // default first turn to client with 'X' playerChar
-          setGameStatus(`X`);
-          setCurrentPlayer('X')
-        }
-      }
+      // default first turn to player 'X'
+      setGameStatus(`X`);
+      setCurrentPlayer('X') 
 
       // TODO: create type for valid statuses
       function onGameStatus({ message, status }: GameStatusMessage) {
@@ -79,10 +72,10 @@ export default function Game() {
         }
       }
 
-      socket.on("setup", onSetup);
       socket.on("gameStatus", onGameStatus);
       socket.on("gameEvent", onBroadcastGameEvent);
     } else {
+      console.error('Issue initializing socket context provider')
       setGameConnectionState("disconnected");
       setConnectionMessage("Disconnected");
     }

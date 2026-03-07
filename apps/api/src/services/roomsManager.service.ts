@@ -38,13 +38,14 @@ export class Game {
     this.status = 'pending';
   }
 
-  addPlayer({ socketId, gameChar, userId }: PlayerT): boolean {
+  addPlayer({ socketId, userId }: Omit<PlayerT, 'gameChar'>): Player | null {
     if (this.players.length <= 1) {
-      const player = new Player({ socketId, gameChar, userId });
+      const playerChar = this.#getPlayerChar();
+      const player = new Player({ socketId, gameChar: playerChar, userId });
       this.players.push(player);
-      return true;
+      return player;
     }
-    return false;
+    return null;
   }
 
   getPlayers() {
@@ -55,6 +56,7 @@ export class Game {
     this.players = this.players.filter(
       (player) => player.getPlayerInfo().socketId !== socketId,
     );
+    return this.players;
   }
 
   getStatus(): string {
@@ -64,6 +66,27 @@ export class Game {
   setStatus(status: string) {
     this.status = status;
   }
+
+  playerIsInGame = (socketId: string) => {
+    const player = this.players.find(
+      (player) => player.getPlayerInfo().socketId === socketId,
+    );
+    return player ? true : false;
+  };
+
+  #getPlayerChar = (): string => {
+    const numPlayers = this.players.length;
+    let playerChar: string;
+    if (
+      numPlayers === 0 ||
+      (numPlayers === 1 && this.players[0].getPlayerInfo().gameChar !== 'X')
+    ) {
+      playerChar = 'X';
+    } else {
+      playerChar = 'O';
+    }
+    return playerChar;
+  };
 }
 
 @Injectable()
@@ -77,8 +100,11 @@ export class Room {
     this.game = new Game();
   }
 
-  printGame() {
-    console.log(this.game);
+  printRoom() {
+    console.log(`
+      ROOM: ${this.name} 
+      GAME: ${JSON.stringify(this.game)}
+    `);
   }
 }
 
@@ -120,7 +146,15 @@ export class RoomsManagerService {
     return room;
   }
 
-  getRoomBySocketId() {}
+  getRoomBySocketId(socketId: string): Room | null {
+    const roomInfo = [...this.rooms].find(([roomName, room]) => {
+      const roomPlayers = room.game.getPlayers();
+      return roomPlayers.find((player) => {
+        return player.getPlayerInfo().socketId === socketId;
+      });
+    });
+    return roomInfo ? roomInfo[1] : null;
+  }
 
   addRoom() {
     const newRoomName = this.#getNewRoomName();

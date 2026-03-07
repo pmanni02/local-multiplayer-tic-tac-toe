@@ -48,6 +48,8 @@ export function Board({
 
   return (
     <div className="flex flex-col">
+      {/* TEMP */}
+      <p>GAME STATUS: {gameStatus}</p>
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
         <Square
           value={squares[0]!}

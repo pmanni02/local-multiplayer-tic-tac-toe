@@ -11,6 +11,7 @@ export type GameStatusMessage = {
 
 export type RoomDeterminedMessage = {
   roomName: string;
+  playerChar: string;
 };
 
 export type GameInitializedMessage = {
