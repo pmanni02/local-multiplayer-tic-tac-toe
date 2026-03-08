@@ -3,11 +3,9 @@ import { Player } from './player';
 
 export class Game {
   private players: Player[];
-  private status: string;
 
   constructor() {
     this.players = [];
-    this.status = 'pending';
   }
 
   addPlayer({ socketId, userId }: Omit<PlayerT, 'gameChar'>): Player | null {
@@ -29,14 +27,6 @@ export class Game {
       (player) => player.getPlayerInfo().socketId !== socketId,
     );
     return this.players;
-  }
-
-  getStatus(): string {
-    return this.status;
-  }
-
-  setStatus(status: string) {
-    this.status = status;
   }
 
   playerIsInGame = (socketId: string) => {

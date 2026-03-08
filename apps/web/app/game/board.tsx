@@ -1,20 +1,20 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
 import { WINNER } from "./page";
-import { GameConnectionStates, Nullable } from "@repo/shared-types";
+import {  Nullable } from "@repo/shared-types";
 
 export function Board({
   squares,
-  gameStatus,
-  connectionState,
+  gameResult,
+  connectionMessage,
   playerChar,
   currentPlayer,
   room,
   socket,
 }: {
   squares: ("" | "X" | "O")[];
-  gameStatus: string;
-  connectionState: GameConnectionStates;
+  gameResult: string;
+  connectionMessage: string;
   playerChar: string;
   currentPlayer: string;
   room: string;
@@ -25,8 +25,8 @@ export function Board({
   const click = (index: number): void => {
     if (
       squares[index] ||
-      gameStatus === WINNER ||
-      connectionState !== "connected" ||
+      gameResult === WINNER ||
+      connectionMessage !== 'Game Ready' ||
       isWrongTurn
     ) {
       return;
@@ -38,7 +38,6 @@ export function Board({
       if (socket) {
         socket.emit("gameEvent", {
           squares: squaresCopy,
-          status: gameStatus,
           currentPlayer: playerChar === "X" ? "O" : "X",
           room,
         });
@@ -49,7 +48,7 @@ export function Board({
   return (
     <div className="flex flex-col">
       {/* TEMP */}
-      <p>GAME STATUS: {gameStatus}</p>
+      <p>{gameResult ? gameResult : ''}</p>
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
         <Square
           value={squares[0]!}

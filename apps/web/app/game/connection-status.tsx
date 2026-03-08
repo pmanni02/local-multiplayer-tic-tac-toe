@@ -1,25 +1,23 @@
-import { GameConnectionStates } from "@repo/shared-types";
 import { Tooltip } from "flowbite-react";
 
+const msgToColor = {
+  'Waiting for opponent': 'text-light-orange',
+  'Game Ready': 'text-green-500/70',
+  'Opponent Left Game': 'text-lipstick-red',
+  'Opponent Disconnected': 'text-lipstick-red',
+  'Disconnected': 'text-lipstick-red'
+}
+
 export function ConnectionStatus({
-  connectionState,
   connectionMessage,
   playerChar,
   currentPlayer,
 }: {
-  connectionState: GameConnectionStates;
   connectionMessage: string;
   playerChar: string;
   currentPlayer: string;
 }) {
-  let connectionColor: string = "text-light-orange";
-  if (connectionState === "connected") {
-    connectionColor = "text-green-500/70";
-  } else if (connectionState === "disconnected") {
-    connectionColor = "text-lipstick-red";
-  } else if (connectionState === "pendingGame") {
-    connectionColor = "text-light-orange";
-  }
+  const connectionColor: string = msgToColor[connectionMessage as keyof typeof msgToColor];
   return (
     <>
       <div className="flex flex-row group w-full justify-center gap-x-2 items-center">

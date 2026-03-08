@@ -10,23 +10,13 @@ import {
 } from '@nestjs/websockets';
 import {
   type EventsMessageToClient,
-  type EventsMessageToServer,
   type GameInitializedMessage,
   GameStatusMessage,
   Nullable,
-  RoomDeterminedMessage,
 } from '@repo/shared-types';
 import { Server, Socket } from 'socket.io';
 import { RoomsManagerService } from 'src/services/roomsManager.service';
-
-export const getTimeNow = (): string => {
-  const now = new Date();
-  const h = now.getHours();
-  const m = now.getMinutes();
-  const s = now.getSeconds();
-  const ms = now.getMilliseconds();
-  return `${h}:${m}:${s}:${ms}`;
-};
+import { getTimeNow } from 'src/utils';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway
@@ -47,37 +37,36 @@ export class EventsGateway
   handleDisconnect(socket: Socket): void {
     const msg = {
       message: 'Opponent Disconnected',
-      status: 'pendingGame',
     };
     this.handleDisconnectEvent(msg, socket);
+    console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
   }
 
   @SubscribeMessage('gameEnded')
   handGameEnded(@ConnectedSocket() socket: Socket): void {
     const msg = {
       message: 'Opponent Left Game',
-      status: 'opponentLeft',
     };
+
     this.handleDisconnectEvent(msg, socket);
+    console.log(`[PLAYER LEFT | ${getTimeNow()}]: ${socket.id}`);
+
+    this.handleFindNewGame(socket);
   }
 
   private handleDisconnectEvent(msg: Record<string, string>, socket: Socket) {
     const room = this.roomsManagerService.getRoomBySocketId(socket.id);
     room?.game.removePlayerBySocketId(socket.id);
     const remainingPlayers = room?.game.getPlayers();
-    room?.printRoom();
 
-    if (remainingPlayers) {
-      if (remainingPlayers.length === 1) {
-        const opponentSocketId = remainingPlayers[0].getPlayerInfo().socketId;
-        if (msg) socket.to(opponentSocketId).emit('gameStatus', msg);
-      }
-      console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
+    if (remainingPlayers && remainingPlayers.length === 1) {
+      const opponentSocketId = remainingPlayers[0].getPlayerInfo().socketId;
+      if (msg) socket.to(opponentSocketId).emit('gameStatus', msg);
+      room?.printRoom();
     }
   }
 
-  @SubscribeMessage('playerConnected')
-  handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
+  private handleFindNewGame(socket: Socket) {
     const myRoom = this.roomsManagerService.findOpenRoom();
 
     // get game from room, add player to room
@@ -96,9 +85,18 @@ export class EventsGateway
       roomName: myRoom.name,
       playerChar: newPlayerChar,
     });
+
+    console.log(`[PLAYER JOINED | ${getTimeNow()}]: ${socket.id}`);
     myRoom.printRoom();
   }
 
+  // playerConnected -> roomDetermined
+  @SubscribeMessage('playerConnected')
+  handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
+    this.handleFindNewGame(socket);
+  }
+
+  // gameInitialized -> gameStatus
   @SubscribeMessage('gameInitialized')
   handleGameInitialized(
     @MessageBody()
@@ -115,16 +113,13 @@ export class EventsGateway
         // emit to self (only player room)
         msg = {
           message: 'Waiting for opponent',
-          status: 'pendingGame',
         };
       } else if (room.game.getPlayers().length === 2) {
         // emit to all players in room
         msg = {
           message: 'Game Ready',
-          status: 'ready',
         };
       }
-
       if (msg) this.server.to(roomName).emit('gameStatus', msg);
     }
 
@@ -138,14 +133,12 @@ export class EventsGateway
     @MessageBody()
     data: {
       squares: string[];
-      status: string;
       currentPlayer: string;
       room: string;
     },
   ): void {
     const eventsMessage: EventsMessageToClient = {
       squares: data.squares,
-      status: data.status,
       currentPlayer: data.currentPlayer,
     };
     this.server.to(data.room).emit('gameEvent', eventsMessage);

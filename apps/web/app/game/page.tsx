@@ -8,7 +8,6 @@ import { useSocketContext } from "../socketContext";
 import { EndGameButton } from "./end-game-button";
 import {
   EventsMessageToClient,
-  GameConnectionStates,
   GameInitializedMessage,
   GameStatusMessage,
 } from "@repo/shared-types";
@@ -19,15 +18,11 @@ export const TIE = "TIE!";
 
 export default function Game() {
   const { socket, roomName, playerChar } = useSocketContext();
-
-  const [gameConnectionState, setGameConnectionState] =
-    useState<GameConnectionStates>("pendingGame");
+  const [squares, setSquares] = useState(Array(9).fill(""));
   const [connectionMessage, setConnectionMessage] = useState("...");
 
-  const [squares, setSquares] = useState(Array(9).fill(""));
-
   // displays win/tie and current turn
-  const [gameStatus, setGameStatus] = useState("");
+  const [gameResult, setGameResult] = useState("");
   const [currentPlayer, setCurrentPlayer] = useState("");
 
   // TODO: add users to handle reconnection/page refresh
@@ -41,34 +36,23 @@ export default function Game() {
       socket.emit("gameInitialized", gameInitializedMessage);
 
       // default first turn to player 'X'
-      setGameStatus(`X`);
       setCurrentPlayer("X");
 
-      // TODO: create type for valid statuses
-      function onGameStatus({ message, status }: GameStatusMessage) {
-        if (status === "pendingGame" || status === "opponentLeft") {
-          setGameConnectionState("pendingGame");
-        } else if (status === "ready") {
-          setGameConnectionState("connected");
-        }
+      function onGameStatus({ message }: GameStatusMessage) {
         setConnectionMessage(message);
       }
 
       function onBroadcastGameEvent({
         squares,
-        status,
         currentPlayer,
       }: EventsMessageToClient) {
         setSquares(squares);
-        setGameStatus(status);
         setCurrentPlayer(currentPlayer);
 
         if (gameWon(squares)) {
-          setGameStatus(WINNER);
+          setGameResult(WINNER)
         } else if (gameTie(squares)) {
-          setGameStatus(TIE);
-        } else {
-          setGameStatus(currentPlayer);
+          setGameResult(TIE)
         }
       }
 
@@ -76,7 +60,6 @@ export default function Game() {
       socket.on("gameEvent", onBroadcastGameEvent);
     } else {
       console.error("Issue initializing socket context provider");
-      setGameConnectionState("disconnected");
       setConnectionMessage("Disconnected");
     }
 
@@ -93,15 +76,14 @@ export default function Game() {
       <div className="flex justify-center content-center h-screen items-center bg-light-blue">
         <div className="flex flex-col gap-y-2">
           <ConnectionStatus
-            connectionState={gameConnectionState}
             connectionMessage={connectionMessage}
             currentPlayer={currentPlayer}
             playerChar={playerChar}
           />
           <Board
             squares={squares}
-            gameStatus={gameStatus}
-            connectionState={gameConnectionState}
+            gameResult={gameResult}
+            connectionMessage={connectionMessage}
             playerChar={playerChar}
             currentPlayer={currentPlayer}
             room={roomName}
