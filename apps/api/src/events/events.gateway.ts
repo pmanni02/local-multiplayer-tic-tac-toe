@@ -30,71 +30,46 @@ export class EventsGateway
     this.roomsManagerService = new RoomsManagerService();
   }
 
+  // client connected -> increment total client count
   handleConnection(socket: Socket): void {
     console.log(`[CONNECTED | ${getTimeNow()}]: ${socket.id}`);
     this.roomsManagerService.incrementNumClients();
   }
 
-  handleDisconnect(socket: Socket): void {
-    const msg = {
-      message: 'Opponent Disconnected',
-    };
-    this.handleDisconnectEvent(msg, socket);
-    console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
-
-    this.roomsManagerService.decrementNumClients();
-  }
-
-  @SubscribeMessage('gameEnded')
-  handGameEnded(@ConnectedSocket() socket: Socket): void {
-    const room = this.roomsManagerService.getRoomBySocketId(socket.id);
-    const msg = {
-      message: 'Opponent Left Game',
-    };
-
-    this.handleDisconnectEvent(msg, socket);
-    console.log(`[PLAYER LEFT | ${getTimeNow()}]: ${socket.id}`);
-    room?.printRoom();
-  }
-
-  // playerConnected -> roomDetermined
+  // playerConnected -> find/join room, emit roomDetermined
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
     const room = this.roomsManagerService.getRoomBySocketId(socket.id);
     if (!room) {
-      this.handleFindNewGame(socket);
+      const myRoom = this.roomsManagerService.findOpenRoom();
+
+      if (!myRoom.game.playerIsInGame(socket.id)) {
+        // get game from room, add player to room
+        const myGame = myRoom.game;
+        const newPlayer = myGame.addPlayer({
+          socketId: socket.id,
+          userId: 'temp',
+        });
+        const newPlayerChar = newPlayer?.getPlayerInfo().gameChar;
+
+        // only emit room/char info to own client
+        this.server.to(socket.id).emit('roomDetermined', {
+          roomName: myRoom.name,
+          playerChar: newPlayerChar,
+        });
+
+        // join room
+        void socket.join(myRoom.name);
+
+        console.log(`[PLAYER JOINED | ${getTimeNow()}]: ${socket.id}`);
+        myRoom.printRoom();
+      } else {
+        console.error(`socketId: ${socket.id} already in room/game`);
+      }
     }
   }
 
-  private handleFindNewGame(socket: Socket) {
-    const myRoom = this.roomsManagerService.findOpenRoom();
-
-    if (!myRoom.game.playerIsInGame(socket.id)) {
-      // get game from room, add player to room
-      const myGame = myRoom.game;
-      const newPlayer = myGame.addPlayer({
-        socketId: socket.id,
-        userId: 'temp',
-      });
-      const newPlayerChar = newPlayer?.getPlayerInfo().gameChar;
-
-      // only emit room/char info to own client
-      this.server.to(socket.id).emit('roomDetermined', {
-        roomName: myRoom.name,
-        playerChar: newPlayerChar,
-      });
-
-      // join room
-      void socket.join(myRoom.name);
-
-      console.log(`[PLAYER JOINED | ${getTimeNow()}]: ${socket.id}`);
-      myRoom.printRoom();
-    } else {
-      console.error(`socketId: ${socket.id} already in room/game`);
-    }
-  }
-
-  // gameInitialized -> gameStatus
+  // gameInitialized -> determine/emit gameStatus
   @SubscribeMessage('gameInitialized')
   handleGameInitialized(
     @MessageBody()
@@ -124,6 +99,7 @@ export class EventsGateway
     }
   }
 
+  // gameEvent -> rebroadcast to clients in room
   @SubscribeMessage('gameEvent')
   handleBroadcastGameEvent(
     @MessageBody()
@@ -138,6 +114,30 @@ export class EventsGateway
       currentPlayer: data.currentPlayer,
     };
     this.server.to(data.room).emit('gameEvent', eventsMessage);
+  }
+
+  // client disconnected -> update room object, decrement total client count
+  handleDisconnect(socket: Socket): void {
+    const msg = {
+      message: 'Opponent Disconnected',
+    };
+    this.handleDisconnectEvent(msg, socket);
+    console.log(`[DISCONNECTED | ${getTimeNow()}]: ${socket.id}`);
+
+    this.roomsManagerService.decrementNumClients();
+  }
+
+  // client left room -> update room object
+  @SubscribeMessage('gameEnded')
+  handGameEnded(@ConnectedSocket() socket: Socket): void {
+    const room = this.roomsManagerService.getRoomBySocketId(socket.id);
+    const msg = {
+      message: 'Opponent Left Game',
+    };
+    this.handleDisconnectEvent(msg, socket);
+    console.log(`[PLAYER LEFT | ${getTimeNow()}]: ${socket.id}`);
+
+    room?.printRoom();
   }
 
   private handleDisconnectEvent(msg: Record<string, string>, socket: Socket) {
