@@ -4,9 +4,29 @@ import { Room } from './helpers/room';
 @Injectable()
 export class RoomsManagerService {
   private rooms: Map<string, Room>;
+  private numClients: number;
 
   constructor() {
     this.rooms = new Map();
+    this.numClients = 0;
+  }
+
+  incrementNumClients() {
+    this.numClients++;
+    this.#printNumClients();
+  }
+
+  decrementNumClients() {
+    this.numClients--;
+    this.#printNumClients();
+  }
+
+  #printNumClients() {
+    console.log('NUM CLIENTS', this.numClients);
+  }
+
+  getNumClients() {
+    return this.numClients;
   }
 
   getRooms() {

@@ -10,6 +10,7 @@ import {
   EventsMessageToClient,
   GameInitializedMessage,
   GameStatusMessage,
+  RoomDeterminedMessage,
 } from "@repo/shared-types";
 import { ConnectionStatus } from "./connection-status";
 
@@ -17,9 +18,13 @@ export const WINNER = "WINNER!";
 export const TIE = "TIE!";
 
 export default function Game() {
-  const { socket, roomName, playerChar } = useSocketContext();
+  const { socket } = useSocketContext();
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [connectionMessage, setConnectionMessage] = useState("...");
+
+  // room and player char
+  const [room, setRoom] = useState("");
+  const [playerChar, setPlayerChar] = useState("");
 
   // displays win/tie and current turn
   const [gameResult, setGameResult] = useState("");
@@ -27,16 +32,29 @@ export default function Game() {
 
   // TODO: add users to handle reconnection/page refresh
   useEffect(() => {
-    if (socket && roomName && playerChar) {
-      console.log("playerChar", playerChar);
-      // get player character, room
-      const gameInitializedMessage: GameInitializedMessage = {
-        roomName,
-      };
-      socket.emit("gameInitialized", gameInitializedMessage);
+    if (socket) {
+      if (socket.connected) {
+        console.log('PLAYER CONNECTED')
+        socket.emit("playerConnected");
+      }
 
       // default first turn to player 'X'
       setCurrentPlayer("X");
+
+      function onRoomDetermined({
+        roomName,
+        playerChar,
+      }: RoomDeterminedMessage) {
+        setRoom(roomName);
+        setPlayerChar(playerChar);
+        console.log(`[ROOM]: ${roomName} | [CHAR]: ${playerChar}`);
+
+        // get player character, room
+        const gameInitializedMessage: GameInitializedMessage = {
+          roomName,
+        };
+        socket!.emit("gameInitialized", gameInitializedMessage);
+      }
 
       function onGameStatus({ message }: GameStatusMessage) {
         setConnectionMessage(message);
@@ -56,6 +74,7 @@ export default function Game() {
         }
       }
 
+      socket.on("roomDetermined", onRoomDetermined);
       socket.on("gameStatus", onGameStatus);
       socket.on("gameEvent", onBroadcastGameEvent);
     } else {
@@ -64,7 +83,7 @@ export default function Game() {
     }
 
     return () => {
-      socket?.off("setup");
+      socket?.off("roomDetermined");
       socket?.off("gameEvent");
       socket?.off("gameStatus");
     };
@@ -86,7 +105,7 @@ export default function Game() {
             connectionMessage={connectionMessage}
             playerChar={playerChar}
             currentPlayer={currentPlayer}
-            room={roomName}
+            room={room}
             socket={socket}
           />
           <div className="flex flex-row justify-center gap-2 p-[2px]">
@@ -94,7 +113,7 @@ export default function Game() {
             <EndGameButton />
           </div>
           <div className="flex justify-center gap-5 rounded-b-md text-black items-center text-m">
-            <GameInfo roomName={roomName} />
+            <GameInfo roomName={room} />
           </div>
         </div>
       </div>
