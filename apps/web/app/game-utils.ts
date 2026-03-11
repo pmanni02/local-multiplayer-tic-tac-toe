@@ -1,3 +1,4 @@
+// TODO: move to backend
 export const gameTie = (squares: string[]): boolean => {
   const emptySquares = squares.filter((val) => val === "");
   if (emptySquares.length === 0) {

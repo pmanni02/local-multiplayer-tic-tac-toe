@@ -113,6 +113,14 @@ export class EventsGateway
       squares: data.squares,
       currentPlayer: data.currentPlayer,
     };
+
+    // TODO: add check for win or tie
+    // - if win/tie, emit gameStatus event
+    //    - emit 'you win' msg to winner
+    //    - emit 'you lost' msg to loser
+    //    - OR emit 'tie' to both
+    // - else, emit gameEvent
+
     this.server.to(data.room).emit('gameEvent', eventsMessage);
   }
 

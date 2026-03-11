@@ -57,6 +57,8 @@ export default function Game() {
       }
 
       function onGameStatus({ message }: GameStatusMessage) {
+        // TODO: 
+        // if gameStatus is win or tie, update gameResult
         setConnectionMessage(message);
       }
 
@@ -67,6 +69,7 @@ export default function Game() {
         setSquares(squares);
         setCurrentPlayer(currentPlayer);
 
+        // TODO: remove conditional
         if (gameWon(squares)) {
           setGameResult(WINNER);
         } else if (gameTie(squares)) {
