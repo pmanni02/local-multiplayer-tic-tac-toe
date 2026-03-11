@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { EventsGateway } from './events.gateway';
-import { RegularGameService } from 'src/services/regularGame.service';
+import { RoomsManagerService } from 'src/services/roomsManager.service';
 
 @Module({
-  providers: [EventsGateway, RegularGameService],
+  providers: [EventsGateway, RoomsManagerService],
 })
 export class EventsModule {}

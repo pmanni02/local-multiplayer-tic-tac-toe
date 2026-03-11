@@ -19,12 +19,6 @@ function TextInfo({
   );
 }
 
-export function GameInfo({
-  roomName,
-}: {
-  roomName: string;
-}) {
-  return (
-      <TextInfo description="Room" value={roomName} id="game-room" />
-  );
+export function GameInfo({ roomName }: { roomName: string }) {
+  return <TextInfo description="Room" value={roomName} id="game-room" />;
 }

@@ -1,68 +1,92 @@
 import { Injectable } from '@nestjs/common';
-import { Socket } from 'socket.io';
 
-export type Game = {
+interface RegularGame {
   numPlayers: number;
   playerSocketInfo: Record<string, string>; // {socketId: playerChar}
-  gameType: string;
-};
+}
 
-export type RoomToGameMap = Map<string, Game>;
+export type RoomToGameMap = Map<string, RegularGame>;
 
 @Injectable()
 export class RegularGameService {
   private readonly roomToGameMap: RoomToGameMap = new Map();
 
-  getGameToRoomMap = () => {
-    return this.roomToGameMap;
+  printRoomToGameMap = () => {
+    console.log('GAME_MAP', this.roomToGameMap);
   };
 
-  getOpenRoomName = (): string[] => {
-    const roomInfo = [...this.roomToGameMap].filter(([roomName, game]) => {
-      return game.numPlayers <= 1;
-    });
+  getGame = (roomName: string) => {
+    return this.roomToGameMap.get(roomName);
+  };
 
-    if (roomInfo.length) {
-      return roomInfo.map(([name, game]) => name);
+  setGame = (roomName: string, game: RegularGame): void => {
+    this.roomToGameMap.set(roomName, game);
+  };
+
+  // update game
+  addPlayerBySocketId = (game: RegularGame, socketId: string) => {
+    const playerChar = this.#getPlayerChar(game);
+    game.numPlayers += 1;
+    game.playerSocketInfo[socketId] = playerChar;
+    return game;
+  };
+
+  removePlayerBySocketId = (socketId: string) => {
+    // const roomAndGameInfo = this.getGameInfoBySocketId(socketId);
+    const roomAndGameInfo = this.getRoomAndGameInfoBySocketId(socketId);
+
+    // only update game map if socket.id has been assigned a room
+    if (roomAndGameInfo) {
+      const [roomName, game] = roomAndGameInfo;
+
+      // delete socket info, update game
+      delete game.playerSocketInfo[socketId];
+      const updatedGame: RegularGame = {
+        ...game,
+        numPlayers: game.numPlayers - 1,
+        playerSocketInfo: game.playerSocketInfo,
+      };
+      this.roomToGameMap.set(roomName, updatedGame);
+
+      return updatedGame;
     }
-    return [];
   };
 
-  addRoom = (gameType: string): string => {
-    const newGame = {
-      numPlayers: 0,
-      playerSocketInfo: {},
-      gameType,
-    };
-
-    const numRooms = this.roomToGameMap.size;
-    const newRoomName = `room${numRooms + 1}`;
-    this.roomToGameMap.set(newRoomName, newGame);
-    return newRoomName;
+  isPlayerConnected = (socketId: string): boolean => {
+    return this.getRoomAndGameInfoBySocketId(socketId) === undefined
+      ? false
+      : true;
   };
 
-  getRoomAndGameBySocketId = (
-    socketId: string,
-  ): { roomName: string; game: Game } | null => {
-    const room = [...this.roomToGameMap].find(([_, game]) => {
-      const socketIds = Object.entries(game.playerSocketInfo).map(
-        ([id, _]) => id,
-      );
+  findOpenRoom = (): string => {
+    const openRooms = this.#getOpenRoomNames();
+    let roomName: string;
+    if (openRooms.length > 0) {
+      roomName = openRooms[0];
+    } else {
+      roomName = this.#addRoomAndGame();
+    }
+    return roomName;
+  };
+
+  #getOpenRoomNames = (): string[] => {
+    return [...this.roomToGameMap]
+      .filter(([_, game]) => {
+        return game.numPlayers <= 1;
+      })
+      .map(([name, _]) => name);
+  };
+
+  getRoomAndGameInfoBySocketId = (socketId: string) => {
+    return [...this.roomToGameMap].find(([_, game]) => {
+      const socketIds = this.#getGameSocketIds(game);
       return socketIds.includes(socketId);
     });
-
-    if (room) {
-      const [name, game] = room;
-      return {
-        roomName: name,
-        game,
-      };
-    }
-    return null;
   };
 
-  getPlayerChar = (game: Game): string => {
-    const numPlayers = game?.numPlayers;
+  // defaults to setting first connected client to 'X'
+  #getPlayerChar = (game: RegularGame): string => {
+    const numPlayers = game.numPlayers;
     let playerChar: string;
     if (
       numPlayers === 0 ||
@@ -75,43 +99,22 @@ export class RegularGameService {
     return playerChar;
   };
 
-  removePlayerBySocketId = (
-    socket: Socket,
-    reason: 'disconnect' | 'manual',
-  ) => {
-    const roomAndGameInfo = this.getRoomAndGameBySocketId(socket.id);
+  #addRoomAndGame = (): string => {
+    const newGame: RegularGame = {
+      numPlayers: 0,
+      playerSocketInfo: {},
+    };
 
-    // only update game map if socket.id has been assigned a room
-    if (roomAndGameInfo) {
-      const { roomName, game } = roomAndGameInfo;
-      delete game.playerSocketInfo[socket.id];
-      const updatedGame: Game = {
-        ...game,
-        numPlayers: game.numPlayers - 1,
-        playerSocketInfo: game.playerSocketInfo,
-      };
+    const newRoomName = this.#getNewRoomName();
+    this.roomToGameMap.set(newRoomName, newGame);
+    return newRoomName;
+  };
 
-      this.roomToGameMap.set(roomName, updatedGame);
+  #getNewRoomName = (): string => {
+    return `room${this.roomToGameMap.size + 1}`;
+  };
 
-      //if there is still a player, notify other player of disconnect
-      if (updatedGame.numPlayers === 1) {
-        const opponentSocketId = Object.keys(updatedGame.playerSocketInfo)[0];
-        // console.log('opponentSocketId', opponentSocketId);
-
-        if (reason === 'disconnect') {
-          socket.to(opponentSocketId).emit('gameStatus', {
-            message: 'Opponent Disconnected',
-            status: 'pendingGame',
-          });
-        } else if (reason === 'manual') {
-          socket.to(opponentSocketId).emit('gameStatus', {
-            message: 'Opponent Left Game',
-            status: 'opponentLeft',
-          });
-        }
-      }
-      return true;
-    }
-    return false;
+  #getGameSocketIds = (game: RegularGame) => {
+    return Object.entries(game.playerSocketInfo).map(([id, _]) => id);
   };
 }

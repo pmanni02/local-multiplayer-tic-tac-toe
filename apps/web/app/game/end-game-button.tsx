@@ -1,6 +1,6 @@
 "use client";
 import { Socket } from "socket.io-client";
-import { useSocket } from "../socketContext";
+import { useSocketContext } from "../socketContext";
 import Link from "next/link";
 import { Nullable } from "@repo/shared-types";
 import { Modal, ModalHeader, ModalBody } from "flowbite-react";
@@ -17,7 +17,7 @@ const endGame = (socket: Nullable<Socket>) => {
 };
 
 export function EndGameButton() {
-  const { socket } = useSocket();
+  const { socket } = useSocketContext();
   const [openModal, setOpenModal] = useState(false);
 
   return (

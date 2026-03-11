@@ -1,5 +1,5 @@
 import { Socket } from "socket.io-client";
-import { useSocket } from "../socketContext";
+import { useSocketContext } from "../socketContext";
 import { Nullable } from "@repo/shared-types";
 
 // TODO:
@@ -11,7 +11,7 @@ import { Nullable } from "@repo/shared-types";
 const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
   const newSquares = Array(9).fill("");
   if (socket) {
-    socket.emit("events", {
+    socket.emit("gameEvent", {
       squares: newSquares,
       status: "",
       currentPlayer: "X",
@@ -21,7 +21,7 @@ const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
 };
 
 export function ResetGameButton() {
-  const { socket, roomName } = useSocket();
+  const { socket, roomName } = useSocketContext();
   return (
     <button
       type="button"
