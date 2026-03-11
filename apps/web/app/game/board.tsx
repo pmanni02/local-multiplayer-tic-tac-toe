@@ -1,7 +1,7 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
 import { WINNER } from "./page";
-import {  Nullable } from "@repo/shared-types";
+import { Nullable } from "@repo/shared-types";
 
 export function Board({
   squares,
@@ -26,7 +26,7 @@ export function Board({
     if (
       squares[index] ||
       gameResult === WINNER ||
-      connectionMessage !== 'Game Ready' ||
+      connectionMessage !== "Game Ready" ||
       isWrongTurn
     ) {
       return;
@@ -48,7 +48,7 @@ export function Board({
   return (
     <div className="flex flex-col">
       {/* TEMP */}
-      <p>{gameResult ? gameResult : ''}</p>
+      <p>{gameResult ? gameResult : ""}</p>
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
         <Square
           value={squares[0]!}

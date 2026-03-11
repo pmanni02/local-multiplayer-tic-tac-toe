@@ -34,7 +34,7 @@ export default function Game() {
   useEffect(() => {
     if (socket) {
       if (socket.connected) {
-        console.log('PLAYER CONNECTED')
+        console.log("PLAYER CONNECTED");
         socket.emit("playerConnected");
       }
 
@@ -68,9 +68,9 @@ export default function Game() {
         setCurrentPlayer(currentPlayer);
 
         if (gameWon(squares)) {
-          setGameResult(WINNER)
+          setGameResult(WINNER);
         } else if (gameTie(squares)) {
-          setGameResult(TIE)
+          setGameResult(TIE);
         }
       }
 

@@ -1,12 +1,12 @@
 import { Tooltip } from "flowbite-react";
 
 const msgToColor = {
-  'Waiting for opponent': 'text-light-orange',
-  'Game Ready': 'text-green-500/70',
-  'Opponent Left Game': 'text-lipstick-red',
-  'Opponent Disconnected': 'text-lipstick-red',
-  'Disconnected': 'text-lipstick-red'
-}
+  "Waiting for opponent": "text-light-orange",
+  "Game Ready": "text-green-500/70",
+  "Opponent Left Game": "text-lipstick-red",
+  "Opponent Disconnected": "text-lipstick-red",
+  Disconnected: "text-lipstick-red",
+};
 
 export function ConnectionStatus({
   connectionMessage,
@@ -17,7 +17,8 @@ export function ConnectionStatus({
   playerChar: string;
   currentPlayer: string;
 }) {
-  const connectionColor: string = msgToColor[connectionMessage as keyof typeof msgToColor];
+  const connectionColor: string =
+    msgToColor[connectionMessage as keyof typeof msgToColor];
   return (
     <>
       <div className="flex flex-row group w-full justify-center gap-x-2 items-center">
