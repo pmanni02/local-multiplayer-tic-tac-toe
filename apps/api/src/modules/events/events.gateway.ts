@@ -15,7 +15,7 @@ import {
   Nullable,
 } from '@repo/shared-types';
 import { Server, Socket } from 'socket.io';
-import { RoomsManagerService } from 'src/services/roomsManager.service';
+import { RoomsManagerService } from 'src/modules/events/roomsManager.service';
 import { getTimeNow } from 'src/utils';
 
 @WebSocketGateway({ cors: { origin: '*' } })

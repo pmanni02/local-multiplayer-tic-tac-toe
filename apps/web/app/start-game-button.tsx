@@ -3,14 +3,15 @@ import Link from "next/link";
 
 export function StartGameButton({
   gameType,
-  roomName,
+  // roomName,
 }: {
   gameType: Nullable<string>;
-  roomName: Nullable<string>;
+  // roomName: Nullable<string>;
 }) {
   return (
     <Link
-      href={{ pathname: `/game`, query: { room: roomName, type: gameType } }}
+      // href={{ pathname: `/game`, query: { room: roomName, type: gameType } }}
+      href={{ pathname: `/game`, query: { type: gameType } }}
     >
       Start
     </Link>

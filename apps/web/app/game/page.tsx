@@ -57,7 +57,7 @@ export default function Game() {
       }
 
       function onGameStatus({ message }: GameStatusMessage) {
-        // TODO: 
+        // TODO:
         // if gameStatus is win or tie, update gameResult
         setConnectionMessage(message);
       }
@@ -112,7 +112,7 @@ export default function Game() {
             socket={socket}
           />
           <div className="flex flex-row justify-center gap-2 p-[2px]">
-            <ResetGameButton />
+            <ResetGameButton room={room} />
             <EndGameButton />
           </div>
           <div className="flex justify-center gap-5 rounded-b-md text-black items-center text-m">

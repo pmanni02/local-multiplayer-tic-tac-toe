@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Room } from './helpers/room';
+import { Room } from './utils/room';
 
 @Injectable()
 export class RoomsManagerService {
