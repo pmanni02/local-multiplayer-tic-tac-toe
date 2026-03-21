@@ -102,6 +102,7 @@ export class EventsGateway
 
   // --------------------------------------------------------------------
 
+  // TODO: cleanup
   // gameEvent -> rebroadcast to clients in room
   @SubscribeMessage('gameEvent')
   handleBroadcastGameEvent(

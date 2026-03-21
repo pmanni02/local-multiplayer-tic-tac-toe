@@ -10,11 +10,9 @@ import {
   GameInitializedMessage,
   GameStatusMessage,
   RoomDeterminedMessage,
+  VALID_END_GAME_STATUSES,
 } from "@repo/shared-types";
 import { ConnectionStatus } from "./connection-status";
-
-export const WINNER = "WINNER!";
-export const TIE = "TIE!";
 
 export default function Game() {
   const { socket } = useSocketContext();
@@ -61,7 +59,7 @@ export default function Game() {
         setConnectionMessage(message);
       }
 
-      function onGameEnd({ message, squares }: { message: string, squares: string[] }) {
+      function onGameEnd({ message, squares }: { message: VALID_END_GAME_STATUSES, squares: string[] }) {
         setSquares(squares);
         setGameResult(message)
       }

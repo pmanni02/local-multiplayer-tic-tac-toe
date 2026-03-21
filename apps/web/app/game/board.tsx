@@ -1,6 +1,5 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
-import { WINNER } from "./page";
 import { Nullable } from "@repo/shared-types";
 
 export function Board({
@@ -25,7 +24,7 @@ export function Board({
   const click = (index: number): void => {
     if (
       squares[index] ||
-      gameResult === WINNER ||
+      ["WINNER!", "TIE!", "LOSER!"].includes(gameResult) ||
       connectionMessage !== "Game Ready" ||
       isWrongTurn
     ) {
