@@ -38,6 +38,7 @@ export function Board({
       if (socket) {
         socket.emit("gameEvent", {
           squares: squaresCopy,
+          socketId: socket.id,
           currentPlayer: playerChar === "X" ? "O" : "X",
           room,
         });

@@ -3,6 +3,7 @@ export type Nullable<T> = T | null | undefined;
 // WS messages
 export type GameStatusMessage = {
   message: string;
+  squares?: string[];
 };
 
 export type RoomDeterminedMessage = {

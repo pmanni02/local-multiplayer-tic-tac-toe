@@ -17,6 +17,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { RoomsManagerService } from 'src/modules/events/roomsManager.service';
 import { getTimeNow } from 'src/utils';
+import { gameTie, gameWon } from '../game/game.utils';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway
@@ -99,30 +100,46 @@ export class EventsGateway
     }
   }
 
+  // --------------------------------------------------------------------
+
   // gameEvent -> rebroadcast to clients in room
   @SubscribeMessage('gameEvent')
   handleBroadcastGameEvent(
     @MessageBody()
     data: {
       squares: string[];
+      socketId: string;
       currentPlayer: string;
       room: string;
+      status: string;
     },
   ): void {
-    const eventsMessage: EventsMessageToClient = {
-      squares: data.squares,
-      currentPlayer: data.currentPlayer,
-    };
+    const { squares, socketId, room, status, currentPlayer } = data;
 
-    // TODO: add check for win or tie
-    // - if win/tie, emit gameStatus event
-    //    - emit 'you win' msg to winner
-    //    - emit 'you lost' msg to loser
-    //    - OR emit 'tie' to both
-    // - else, emit gameEvent
-
-    this.server.to(data.room).emit('gameEvent', eventsMessage);
+    if (status === 'reset') {
+      const eventsMessage: EventsMessageToClient = {
+        squares: squares,
+        currentPlayer: 'X', // default to 'X' player
+      };
+      this.server.to(room).emit('gameEvent', eventsMessage);
+    } else if (gameWon(squares)) {
+      this.server.to(socketId).emit('gameEnd', { message: 'WINNER!', squares });
+      this.server
+        .to(room)
+        .except(socketId)
+        .emit('gameEnd', { message: 'LOSER!', squares });
+    } else if (gameTie(squares)) {
+      this.server.to(room).emit('gameEnd', { message: 'TIE!', squares });
+    } else {
+      const eventsMessage: EventsMessageToClient = {
+        squares,
+        currentPlayer,
+      };
+      this.server.to(room).emit('gameEvent', eventsMessage);
+    }
   }
+
+  // --------------------------------------------------------------------
 
   // client disconnected -> update room object, decrement total client count
   handleDisconnect(socket: Socket): void {
@@ -136,7 +153,7 @@ export class EventsGateway
   }
 
   // client left room -> update room object
-  @SubscribeMessage('gameEnded')
+  @SubscribeMessage('clientDisconnected')
   handGameEnded(@ConnectedSocket() socket: Socket): void {
     const room = this.roomsManagerService.getRoomBySocketId(socket.id);
     const msg = {

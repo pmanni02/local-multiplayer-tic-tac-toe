@@ -12,7 +12,7 @@ import { useState } from "react";
 
 const endGame = (socket: Nullable<Socket>) => {
   if (socket) {
-    socket.emit("gameEnded");
+    socket.emit("clientDisconnected");
   }
 };
 

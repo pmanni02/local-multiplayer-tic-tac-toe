@@ -1,6 +1,6 @@
-// TODO: move to backend
+// TODO: add unit test
 export const gameTie = (squares: string[]): boolean => {
-  const emptySquares = squares.filter((val) => val === "");
+  const emptySquares = squares.filter((val) => val === '');
   if (emptySquares.length === 0) {
     return true;
   }
@@ -26,9 +26,9 @@ export const gameWon = (squares: string[]): boolean => {
   winConditions.forEach((winCondition) => {
     const [x, y, z] = winCondition;
     const validWinCondition =
-      squares[x!] !== "" &&
-      squares[x!] === squares[y!] &&
-      squares[y!] === squares[z!];
+      squares[x] !== '' &&
+      squares[x] === squares[y] &&
+      squares[y] === squares[z];
     if (validWinCondition) {
       gameOver = true;
       return;

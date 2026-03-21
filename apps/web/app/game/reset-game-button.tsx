@@ -13,7 +13,7 @@ const resetSquares = (socket: Nullable<Socket>, room: string) => {
   if (socket) {
     socket.emit("gameEvent", {
       squares: newSquares,
-      status: "",
+      status: "reset",
       currentPlayer: "X",
       room,
     });
