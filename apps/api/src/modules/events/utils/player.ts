@@ -15,6 +15,11 @@ export class Player {
     if (socketId) this.socketId = socketId;
     if (gameChar) this.gameChar = gameChar;
     if (userId) this.userId = userId;
+    return {
+      socketId: this.socketId,
+      gameChar: this.gameChar,
+      userId: this.userId,
+    };
   }
 
   getPlayerInfo(): PlayerT {
