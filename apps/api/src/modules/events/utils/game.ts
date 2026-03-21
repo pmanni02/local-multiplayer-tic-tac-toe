@@ -14,8 +14,9 @@ export class Game {
       const player = new Player({ socketId, gameChar: playerChar, userId });
       this.players.push(player);
       return player;
+    } else {
+      throw new Error('Game full, cannot add player');
     }
-    return null;
   }
 
   getPlayers() {
@@ -23,9 +24,15 @@ export class Game {
   }
 
   removePlayerBySocketId(socketId: string) {
-    this.players = this.players.filter(
-      (player) => player.getPlayerInfo().socketId !== socketId,
+    const playerIndex = this.players.findIndex(
+      (player) => player.getPlayerInfo().socketId === socketId,
     );
+
+    if (playerIndex >= 0) {
+      this.players.splice(playerIndex, 1);
+    } else {
+      throw new Error(`player with socketId: ${socketId} not in game`);
+    }
     return this.players;
   }
 
