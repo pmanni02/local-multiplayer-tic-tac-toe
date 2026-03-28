@@ -1,6 +1,8 @@
 import { Socket } from "socket.io-client";
 import { Square } from "./square";
 import { Nullable } from "@repo/shared-types";
+import { Modal, ModalBody, ModalHeader } from "flowbite-react";
+import { useState } from "react";
 
 export function Board({
   squares,
@@ -19,6 +21,7 @@ export function Board({
   room: string;
   socket: Nullable<Socket>;
 }) {
+  const [closedModal, setClosedModal] = useState(false);
   const isWrongTurn = currentPlayer !== playerChar;
 
   const click = (index: number): void => {
@@ -47,8 +50,25 @@ export function Board({
 
   return (
     <div className="flex flex-col">
-      {/* TODO: style game result */}
-      <p>{gameResult ? gameResult : ""}</p>
+      <Modal
+        dismissible
+        show={gameResult !== "" && !closedModal}
+        size="lg"
+        onClose={() => {
+          setClosedModal(true)
+        }}
+        popup
+      >
+        <ModalHeader className="bg-transparent rounded-t-md"></ModalHeader>
+        <ModalBody className="bg-transparent rounded-b-md">
+          <div className="space-y-4 md:space-y-4 text-center">
+            <h1 className="mb-6 font-large text-xl text-light-orange tracking-wider">
+              {gameResult}
+            </h1>
+          </div>
+        </ModalBody>
+      </Modal>
+
       <div className="flex flex-row justify-center h-[103px] gap-[3px]">
         <Square
           value={squares[0]!}

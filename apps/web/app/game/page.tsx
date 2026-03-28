@@ -54,8 +54,6 @@ export default function Game() {
       }
 
       function onGameStatus({ message }: GameStatusMessage) {
-        // TODO:
-        // if gameStatus is win or tie, update gameResult
         setConnectionMessage(message);
       }
 
