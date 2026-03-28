@@ -64,7 +64,7 @@ export default function Game() {
         setGameResult(message)
       }
 
-      function onBroadcastGameEvent({
+      function onGameStateChange({
         squares,
         currentPlayer,
       }: EventsMessageToClient) {
@@ -75,7 +75,7 @@ export default function Game() {
 
       socket.on("roomDetermined", onRoomDetermined);
       socket.on("gameStatus", onGameStatus);
-      socket.on("gameEvent", onBroadcastGameEvent);
+      socket.on("gameEvent", onGameStateChange);
       socket.on("gameEnd", onGameEnd);
 
     } else {

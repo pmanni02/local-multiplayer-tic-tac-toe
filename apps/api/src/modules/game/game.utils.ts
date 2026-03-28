@@ -1,4 +1,3 @@
-// TODO: add unit test
 export const gameTie = (squares: string[]): boolean => {
   return squares.filter((val) => val === '').length === 0 ? true : false;
 };
