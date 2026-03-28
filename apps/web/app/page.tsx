@@ -1,11 +1,10 @@
 "use client";
 import React from "react";
 import { StartGameButton } from "./start-game-button";
-import { useSocketContext } from "./socketContext";
 import { Tooltip } from "flowbite-react";
 
 export default function Page() {
-  const { roomName } = useSocketContext();
+  // const { roomName } = useSocketContext();
 
   return (
     <>
@@ -14,11 +13,13 @@ export default function Page() {
           TIC TAC TOE
         </h1>
         <div className="bg-dark-orange rounded font-normal text-black p-2 shadow-md">
-          <StartGameButton roomName={roomName} gameType="regular" />
+          {/* <StartGameButton roomName={roomName} gameType="regular" /> */}
+          <StartGameButton gameType="regular" />
         </div>
         <Tooltip
           className=""
-          content={`Room: ${roomName} | Type: regular`}
+          // content={`Room: ${roomName} | Type: regular`}
+          content={`Type: regular`}
           placement="bottom"
         >
           <svg

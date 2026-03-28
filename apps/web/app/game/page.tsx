@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { gameTie, gameWon } from "../game-utils";
 import { ResetGameButton } from "./reset-game-button";
 import { Board } from "./board";
 import { GameInfo } from "./game-info";
@@ -11,11 +10,9 @@ import {
   GameInitializedMessage,
   GameStatusMessage,
   RoomDeterminedMessage,
+  VALID_END_GAME_STATUSES,
 } from "@repo/shared-types";
 import { ConnectionStatus } from "./connection-status";
-
-export const WINNER = "WINNER!";
-export const TIE = "TIE!";
 
 export default function Game() {
   const { socket } = useSocketContext();
@@ -57,26 +54,30 @@ export default function Game() {
       }
 
       function onGameStatus({ message }: GameStatusMessage) {
+        // TODO:
+        // if gameStatus is win or tie, update gameResult
         setConnectionMessage(message);
       }
 
-      function onBroadcastGameEvent({
+      function onGameEnd({ message, squares }: { message: VALID_END_GAME_STATUSES, squares: string[] }) {
+        setSquares(squares);
+        setGameResult(message)
+      }
+
+      function onGameStateChange({
         squares,
         currentPlayer,
       }: EventsMessageToClient) {
         setSquares(squares);
         setCurrentPlayer(currentPlayer);
-
-        if (gameWon(squares)) {
-          setGameResult(WINNER);
-        } else if (gameTie(squares)) {
-          setGameResult(TIE);
-        }
+        setGameResult("")
       }
 
       socket.on("roomDetermined", onRoomDetermined);
       socket.on("gameStatus", onGameStatus);
-      socket.on("gameEvent", onBroadcastGameEvent);
+      socket.on("gameEvent", onGameStateChange);
+      socket.on("gameEnd", onGameEnd);
+
     } else {
       console.error("Issue initializing socket context provider");
       setConnectionMessage("Disconnected");
@@ -85,6 +86,7 @@ export default function Game() {
     return () => {
       socket?.off("roomDetermined");
       socket?.off("gameEvent");
+      socket?.off("gameEnd");
       socket?.off("gameStatus");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,7 +111,7 @@ export default function Game() {
             socket={socket}
           />
           <div className="flex flex-row justify-center gap-2 p-[2px]">
-            <ResetGameButton />
+            <ResetGameButton room={room} />
             <EndGameButton />
           </div>
           <div className="flex justify-center gap-5 rounded-b-md text-black items-center text-m">

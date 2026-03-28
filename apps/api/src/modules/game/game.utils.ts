@@ -1,9 +1,5 @@
 export const gameTie = (squares: string[]): boolean => {
-  const emptySquares = squares.filter((val) => val === "");
-  if (emptySquares.length === 0) {
-    return true;
-  }
-  return false;
+  return squares.filter((val) => val === '').length === 0 ? true : false;
 };
 
 export const gameWon = (squares: string[]): boolean => {
@@ -25,9 +21,9 @@ export const gameWon = (squares: string[]): boolean => {
   winConditions.forEach((winCondition) => {
     const [x, y, z] = winCondition;
     const validWinCondition =
-      squares[x!] !== "" &&
-      squares[x!] === squares[y!] &&
-      squares[y!] === squares[z!];
+      squares[x] !== '' &&
+      squares[x] === squares[y] &&
+      squares[y] === squares[z];
     if (validWinCondition) {
       gameOver = true;
       return;

@@ -8,25 +8,25 @@ import { Nullable } from "@repo/shared-types";
 //  - if both confirm, send reset board 'events' msg
 //  - else, add create toast (or alert) for both players that game reset was aborted
 
-const resetSquares = (socket: Nullable<Socket>, roomName: string) => {
+const resetSquares = (socket: Nullable<Socket>, room: string) => {
   const newSquares = Array(9).fill("");
   if (socket) {
     socket.emit("gameEvent", {
       squares: newSquares,
-      status: "",
+      status: "reset",
       currentPlayer: "X",
-      room: roomName,
+      room,
     });
   }
 };
 
-export function ResetGameButton() {
-  const { socket, roomName } = useSocketContext();
+export function ResetGameButton({room}:{room: string}) {
+  const { socket } = useSocketContext();
   return (
     <button
       type="button"
       className="text-white bg-dark-orange py-2 px-4 rounded shadow-md"
-      onClick={() => resetSquares(socket, roomName)}
+      onClick={() => resetSquares(socket, room)}
     >
       Reset
     </button>

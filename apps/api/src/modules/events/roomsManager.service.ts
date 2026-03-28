@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Room } from './helpers/room';
+import { Room } from './utils/room';
 
 @Injectable()
 export class RoomsManagerService {
@@ -17,8 +17,12 @@ export class RoomsManagerService {
   }
 
   decrementNumClients() {
-    this.numClients--;
-    this.#printNumClients();
+    if (this.numClients > 0) {
+      this.numClients--;
+      this.#printNumClients();
+    } else {
+      throw new Error('numClients is already zero');
+    }
   }
 
   #printNumClients() {

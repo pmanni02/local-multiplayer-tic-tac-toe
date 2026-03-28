@@ -11,9 +11,7 @@ import { useState } from "react";
 // - send alert to opponent (if exists), that game is over, send 'events' msg to reset
 
 const endGame = (socket: Nullable<Socket>) => {
-  if (socket) {
-    socket.emit("gameEnded");
-  }
+  if (socket) { socket.emit("clientDisconnected") }
 };
 
 export function EndGameButton() {
