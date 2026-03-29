@@ -1,17 +1,9 @@
-import { Nullable } from "@repo/shared-types";
 import Link from "next/link";
 
-export function StartGameButton({
-  gameType,
-  // roomName,
-}: {
-  gameType: Nullable<string>;
-  // roomName: Nullable<string>;
-}) {
+export function StartGameButton() {
   return (
     <Link
-      // href={{ pathname: `/game`, query: { room: roomName, type: gameType } }}
-      href={{ pathname: `/game`, query: { type: gameType } }}
+      href={{ pathname: `/game` }}
     >
       Start
     </Link>

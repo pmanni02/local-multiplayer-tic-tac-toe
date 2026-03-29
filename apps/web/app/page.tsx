@@ -11,7 +11,7 @@ export default function Page() {
           TIC TAC TOE
         </h1>
         <div className="bg-dark-orange rounded font-normal text-black p-2 shadow-md">
-          <StartGameButton gameType="regular" />
+          <StartGameButton />
         </div>
         <Tooltip
           className=""
