@@ -10,7 +10,6 @@ import {
   GameInitializedMessage,
   GameStatusMessage,
   RoomDeterminedMessage,
-  VALID_END_GAME_STATUSES,
 } from "@repo/shared-types";
 import { ConnectionStatus } from "./connection-status";
 
@@ -54,12 +53,10 @@ export default function Game() {
       }
 
       function onGameStatus({ message }: GameStatusMessage) {
-        // TODO:
-        // if gameStatus is win or tie, update gameResult
         setConnectionMessage(message);
       }
 
-      function onGameEnd({ message, squares }: { message: VALID_END_GAME_STATUSES, squares: string[] }) {
+      function onGameEnd({ message, squares }: { message: string, squares: string[] }) {
         setSquares(squares);
         setGameResult(message)
       }

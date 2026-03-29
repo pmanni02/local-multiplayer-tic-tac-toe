@@ -128,11 +128,13 @@ export class EventsGateway
 
     // WIN OR TIE
     if (gameWon(squares)) {
-      this.server.to(socketId).emit('gameEnd', { message: 'WINNER!', squares });
+      this.server
+        .to(socketId)
+        .emit('gameEnd', { message: 'YOU WIN!', squares });
       this.server
         .to(room)
         .except(socketId)
-        .emit('gameEnd', { message: 'LOSER!', squares });
+        .emit('gameEnd', { message: 'YOU LOSE!', squares });
       return;
     } else if (gameTie(squares)) {
       this.server.to(room).emit('gameEnd', { message: 'TIE!', squares });

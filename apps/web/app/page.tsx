@@ -4,8 +4,6 @@ import { StartGameButton } from "./start-game-button";
 import { Tooltip } from "flowbite-react";
 
 export default function Page() {
-  // const { roomName } = useSocketContext();
-
   return (
     <>
       <div className="flex flex-col justify-center content-center h-screen items-center bg-light-blue gap-y-5">
@@ -13,12 +11,10 @@ export default function Page() {
           TIC TAC TOE
         </h1>
         <div className="bg-dark-orange rounded font-normal text-black p-2 shadow-md">
-          {/* <StartGameButton roomName={roomName} gameType="regular" /> */}
           <StartGameButton gameType="regular" />
         </div>
         <Tooltip
           className=""
-          // content={`Room: ${roomName} | Type: regular`}
           content={`Type: regular`}
           placement="bottom"
         >
