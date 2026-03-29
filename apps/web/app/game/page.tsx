@@ -15,7 +15,7 @@ import { ConnectionStatus } from "./connection-status";
 import { redirect } from "next/navigation";
 
 export default function Game() {
-  const { socket } = useSocketContext();
+  const { socket, sessionId } = useSocketContext();
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [connectionMessage, setConnectionMessage] = useState("...");
 
@@ -31,8 +31,7 @@ export default function Game() {
   useEffect(() => {
     if (socket) {
       if (socket.connected) {
-        console.log("PLAYER CONNECTED");
-        socket.emit("playerConnected");
+        socket.emit("playerConnected", { sessionId });
       }
 
       // default first turn to player 'X'
@@ -83,8 +82,15 @@ export default function Game() {
       socket.on("gameEnd", onGameEnd);
     } else {
       console.info("Issue initializing socket context provider");
-      console.log('redirecting to home') //temp
-      redirect('/')
+
+      if (sessionStorage.getItem('gameSessionId')) {
+        console.log('do not refresh')
+        // TODO: emit event to server to get stored details:
+        // - room, gameChar
+      } else {
+        console.log('redirecting to home') //temp
+        redirect('/')
+      }
     }
 
     return () => {

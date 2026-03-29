@@ -10,16 +10,29 @@ import { io, Socket } from "socket.io-client";
 
 type ContextType = {
   socket: Socket | null;
+  sessionId: string | null;
 };
 
 const SocketContext = createContext<ContextType | undefined>(undefined);
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
-  const [socket, setSocket] = useState<null | Socket>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>("")
 
   useEffect(() => {
     if (!socket) {
-      const mySocket = io("http://localhost:3001");
+      let mySessionId: string | null = ""
+      if (sessionStorage.getItem('gameSessionId')) {
+        mySessionId = sessionStorage.getItem('gameSessionId')
+      } else {
+        mySessionId = window.crypto.randomUUID()
+        sessionStorage.setItem('gameSessionId', mySessionId)
+      }
+      setSessionId(mySessionId)
+
+      const mySocket = io("http://localhost:3001", {
+        auth: { token: mySessionId }
+      });
 
       function onConnect() {
         console.log(
@@ -43,7 +56,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const contextValue: ContextType = { socket };
+  const contextValue: ContextType = { socket, sessionId };
 
   return (
     <SocketContext.Provider value={contextValue}>

@@ -33,13 +33,21 @@ export class EventsGateway
 
   // client connected -> increment total client count
   handleConnection(socket: Socket): void {
-    console.log(`[CONNECTED | ${getTimeNow()}]: ${socket.id}`);
+    console.log(
+      `[CONNECTED | ${getTimeNow()}]: ID:${socket.id}, sessionId: ${JSON.stringify(socket.handshake.auth)}`,
+    );
     this.roomsManagerService.incrementNumClients();
   }
 
   // playerConnected -> find/join room, emit roomDetermined
   @SubscribeMessage('playerConnected')
-  handlePlayerConnected(@ConnectedSocket() socket: Socket): void {
+  handlePlayerConnected(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody()
+    data: {
+      sessionId: string;
+    },
+  ): void {
     const room = this.roomsManagerService.getRoomBySocketId(socket.id);
     if (!room) {
       const myRoom = this.roomsManagerService.findOpenRoom();
@@ -49,7 +57,7 @@ export class EventsGateway
         const myGame = myRoom.game;
         const newPlayer = myGame.addPlayer({
           socketId: socket.id,
-          userId: 'temp',
+          userId: data.sessionId,
         });
         const newPlayerChar = newPlayer?.getPlayerInfo().gameChar;
 
