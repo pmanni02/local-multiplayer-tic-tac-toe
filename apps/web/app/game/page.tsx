@@ -12,6 +12,7 @@ import {
   RoomDeterminedMessage,
 } from "@repo/shared-types";
 import { ConnectionStatus } from "./connection-status";
+import { redirect } from "next/navigation";
 
 export default function Game() {
   const { socket } = useSocketContext();
@@ -56,9 +57,15 @@ export default function Game() {
         setConnectionMessage(message);
       }
 
-      function onGameEnd({ message, squares }: { message: string, squares: string[] }) {
+      function onGameEnd({
+        message,
+        squares,
+      }: {
+        message: string;
+        squares: string[];
+      }) {
         setSquares(squares);
-        setGameResult(message)
+        setGameResult(message);
       }
 
       function onGameStateChange({
@@ -67,17 +74,17 @@ export default function Game() {
       }: EventsMessageToClient) {
         setSquares(squares);
         setCurrentPlayer(currentPlayer);
-        setGameResult("")
+        setGameResult("");
       }
 
       socket.on("roomDetermined", onRoomDetermined);
       socket.on("gameStatus", onGameStatus);
       socket.on("gameEvent", onGameStateChange);
       socket.on("gameEnd", onGameEnd);
-
     } else {
-      console.error("Issue initializing socket context provider");
-      setConnectionMessage("Disconnected");
+      console.info("Issue initializing socket context provider");
+      console.log('redirecting to home') //temp
+      redirect('/')
     }
 
     return () => {
