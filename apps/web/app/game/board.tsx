@@ -53,16 +53,16 @@ export function Board({
       <Modal
         dismissible
         show={gameResult !== "" && !closedModal}
-        size="lg"
+        size="xl"
         onClose={() => {
           setClosedModal(true)
         }}
         popup
       >
-        <ModalHeader className="bg-transparent rounded-t-md"></ModalHeader>
-        <ModalBody className="bg-transparent rounded-b-md">
-          <div className="space-y-4 md:space-y-4 text-center">
-            <h1 className="mb-6 font-large text-xl text-light-orange tracking-wider">
+        <ModalHeader className="rounded-t-md"></ModalHeader>
+        <ModalBody className="rounded-b-md">
+          <div className="text-center">
+            <h1 className="mb-6 text-5xl font-medium text-light-orange tracking-wider">
               {gameResult}
             </h1>
           </div>
