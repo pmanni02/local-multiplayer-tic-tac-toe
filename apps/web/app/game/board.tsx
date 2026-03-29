@@ -55,7 +55,7 @@ export function Board({
         show={gameResult !== "" && !closedModal}
         size="xl"
         onClose={() => {
-          setClosedModal(true)
+          setClosedModal(true);
         }}
         popup
       >

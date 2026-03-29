@@ -20,7 +20,7 @@ const resetSquares = (socket: Nullable<Socket>, room: string) => {
   }
 };
 
-export function ResetGameButton({room}:{room: string}) {
+export function ResetGameButton({ room }: { room: string }) {
   const { socket } = useSocketContext();
   return (
     <button

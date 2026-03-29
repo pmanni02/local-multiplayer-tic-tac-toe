@@ -13,11 +13,7 @@ export default function Page() {
         <div className="bg-dark-orange rounded font-normal text-black p-2 shadow-md">
           <StartGameButton />
         </div>
-        <Tooltip
-          className=""
-          content={`Type: regular`}
-          placement="bottom"
-        >
+        <Tooltip className="" content={`Type: regular`} placement="bottom">
           <svg
             className="w-6 h-6 text-gray-800 dark:text-white"
             aria-hidden="true"
