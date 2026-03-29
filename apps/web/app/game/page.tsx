@@ -12,6 +12,7 @@ import {
   RoomDeterminedMessage,
 } from "@repo/shared-types";
 import { ConnectionStatus } from "./connection-status";
+import { redirect } from "next/navigation";
 
 export default function Game() {
   const { socket } = useSocketContext();
@@ -81,8 +82,9 @@ export default function Game() {
       socket.on("gameEvent", onGameStateChange);
       socket.on("gameEnd", onGameEnd);
     } else {
-      console.error("Issue initializing socket context provider");
-      setConnectionMessage("Disconnected");
+      console.info("Issue initializing socket context provider");
+      console.log('redirecting to home') //temp
+      redirect('/')
     }
 
     return () => {
