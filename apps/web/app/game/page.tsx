@@ -85,8 +85,12 @@ export default function Game() {
 
       if (sessionStorage.getItem('gameSessionId')) {
         console.log('do not refresh')
-        // TODO: emit event to server to get stored details:
-        // - room, gameChar
+        // TODO: emit event to server to get stored details: room, gameChar
+        // - add socket.on() to handle event from ws server
+        // - NOTE: may need to reinitialize context provider here
+        //   OR just set socket, playerChar, room state
+        // - NOTE: game board is not saved on backend, so progress
+        //   will be lost
       } else {
         console.log('redirecting to home') //temp
         redirect('/')

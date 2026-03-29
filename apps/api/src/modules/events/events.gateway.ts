@@ -109,6 +109,14 @@ export class EventsGateway
   }
 
   // --------------------------------------------------------------------
+  @SubscribeMessage('reconnect')
+  handleReconnect(@MessageBody() data: { sessionId: string }) {
+    // TODO: add roomsManagerService fn to get room/game/player
+    // by sessionId
+    // - emit event with playerChar, room
+  }
+
+  // --------------------------------------------------------------------
 
   // gameEvent -> rebroadcast to clients in room
   @SubscribeMessage('gameEvent')
