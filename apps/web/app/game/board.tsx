@@ -53,7 +53,7 @@ export function Board({
       <Modal
         dismissible
         show={gameResult !== "" && !closedModal}
-        size="xl"
+        size="lg"
         onClose={() => {
           setClosedModal(true);
         }}

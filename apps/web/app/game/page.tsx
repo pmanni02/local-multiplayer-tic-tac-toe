@@ -67,7 +67,7 @@ export default function Game() {
         setGameResult(message);
       }
 
-      function onGameStateChange({
+      function onGameEvent({
         squares,
         currentPlayer,
       }: EventsMessageToClient) {
@@ -78,7 +78,7 @@ export default function Game() {
 
       socket.on("roomDetermined", onRoomDetermined);
       socket.on("gameStatus", onGameStatus);
-      socket.on("gameEvent", onGameStateChange);
+      socket.on("gameEvent", onGameEvent);
       socket.on("gameEnd", onGameEnd);
     } else {
       console.info("Issue initializing socket context provider");

@@ -128,7 +128,7 @@ export class EventsGateway
     // RESET
     if (status === 'reset') {
       const eventsMessage: EventsMessageToClient = {
-        squares: squares,
+        squares,
         currentPlayer: 'X', // default to 'X' player
       };
       this.server.to(room).emit('gameEvent', eventsMessage);

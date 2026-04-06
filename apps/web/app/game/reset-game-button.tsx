@@ -9,10 +9,9 @@ import { Nullable } from "@repo/shared-types";
 //  - else, add create toast (or alert) for both players that game reset was aborted
 
 const resetSquares = (socket: Nullable<Socket>, room: string) => {
-  const newSquares = Array(9).fill("");
   if (socket) {
     socket.emit("gameEvent", {
-      squares: newSquares,
+      squares: Array(9).fill(""),
       status: "reset",
       currentPlayer: "X",
       room,
