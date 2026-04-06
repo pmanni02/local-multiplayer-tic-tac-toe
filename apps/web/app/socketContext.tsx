@@ -31,12 +31,14 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       setSessionId(mySessionId)
 
       const mySocket = io("http://localhost:3001", {
-        auth: { token: mySessionId }
+        query: { sessionId: mySessionId }
       });
 
       function onConnect() {
         console.log(
-          `[CONNECT]: ${mySocket ? mySocket.id : ""}, status: ${mySocket.connected}`,
+          `[CONNECT]: ${mySocket ? mySocket.id : ""}, 
+           sessionId: ${mySessionId},
+           status: ${mySocket.connected}`,
         );
       }
 

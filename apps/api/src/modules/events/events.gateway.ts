@@ -33,8 +33,9 @@ export class EventsGateway
 
   // client connected -> increment total client count
   handleConnection(socket: Socket): void {
+    const sessionId = socket.handshake.query.sessionId as string;
     console.log(
-      `[CONNECTED | ${getTimeNow()}]: ID:${socket.id}, sessionId: ${JSON.stringify(socket.handshake.auth)}`,
+      `[CONNECTED | ${getTimeNow()}]: ID: ${socket.id}, sessionId: ${sessionId}`,
     );
     this.roomsManagerService.incrementNumClients();
   }
@@ -48,7 +49,7 @@ export class EventsGateway
       sessionId: string;
     },
   ): void {
-    const room = this.roomsManagerService.getRoomBySocketId(socket.id);
+    const room = this.roomsManagerService.getRoomById('socketId', socket.id);
     if (!room) {
       const myRoom = this.roomsManagerService.findOpenRoom();
 
@@ -57,7 +58,7 @@ export class EventsGateway
         const myGame = myRoom.game;
         const newPlayer = myGame.addPlayer({
           socketId: socket.id,
-          userId: data.sessionId,
+          sessionId: data.sessionId,
         });
         const newPlayerChar = newPlayer?.getPlayerInfo().gameChar;
 
@@ -181,7 +182,7 @@ export class EventsGateway
   // client left room -> update room object
   @SubscribeMessage('clientDisconnected')
   handGameEnded(@ConnectedSocket() socket: Socket): void {
-    const room = this.roomsManagerService.getRoomBySocketId(socket.id);
+    const room = this.roomsManagerService.getRoomById('socketId', socket.id);
     const msg = {
       message: 'Opponent Left Game',
     };
@@ -192,7 +193,7 @@ export class EventsGateway
   }
 
   private handleDisconnectEvent(msg: Record<string, string>, socket: Socket) {
-    const room = this.roomsManagerService.getRoomBySocketId(socket.id);
+    const room = this.roomsManagerService.getRoomById('socketId', socket.id);
     room?.game.removePlayerBySocketId(socket.id);
     const remainingPlayers = room?.game.getPlayers();
 

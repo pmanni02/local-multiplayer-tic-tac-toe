@@ -8,10 +8,10 @@ export class Game {
     this.players = [];
   }
 
-  addPlayer({ socketId, userId }: Omit<PlayerT, 'gameChar'>): Player | null {
+  addPlayer({ socketId, sessionId }: Omit<PlayerT, 'gameChar'>): Player | null {
     if (this.players.length <= 1) {
       const playerChar = this.#getPlayerChar();
-      const player = new Player({ socketId, gameChar: playerChar, userId });
+      const player = new Player({ socketId, gameChar: playerChar, sessionId });
       this.players.push(player);
       return player;
     } else {

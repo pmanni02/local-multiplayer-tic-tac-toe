@@ -1,7 +1,7 @@
 export type PlayerT = {
   socketId: string;
   gameChar: string; // x or o
-  userId: string;
+  sessionId: string;
 };
 
 export type OptionalPlayerT = Partial<PlayerT>;

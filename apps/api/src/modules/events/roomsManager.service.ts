@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Room } from './utils/room';
+import { PlayerT } from 'src/types/types';
 
 @Injectable()
 export class RoomsManagerService {
@@ -63,11 +64,11 @@ export class RoomsManagerService {
     return room;
   }
 
-  getRoomBySocketId(socketId: string): Room | null {
-    const roomInfo = [...this.rooms].find(([roomName, room]) => {
+  getRoomById(type: keyof PlayerT, id: string): Room | null {
+    const roomInfo = [...this.rooms].find(([_, room]) => {
       const roomPlayers = room.game.getPlayers();
       return roomPlayers.find((player) => {
-        return player.getPlayerInfo().socketId === socketId;
+        return player.getPlayerInfo()[type] === id;
       });
     });
     return roomInfo ? roomInfo[1] : null;

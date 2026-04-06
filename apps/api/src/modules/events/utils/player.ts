@@ -3,22 +3,22 @@ import { OptionalPlayerT, PlayerT } from 'src/types/types';
 export class Player {
   private socketId: string;
   private gameChar: string;
-  private userId: string;
+  private sessionId: string;
 
-  constructor({ socketId, gameChar, userId }: PlayerT) {
+  constructor({ socketId, gameChar, sessionId }: PlayerT) {
     this.gameChar = gameChar;
     this.socketId = socketId;
-    this.userId = userId;
+    this.sessionId = sessionId;
   }
 
-  setPlayerInfo({ socketId, gameChar, userId }: OptionalPlayerT) {
+  setPlayerInfo({ socketId, gameChar, sessionId }: OptionalPlayerT) {
     if (socketId) this.socketId = socketId;
     if (gameChar) this.gameChar = gameChar;
-    if (userId) this.userId = userId;
+    if (sessionId) this.sessionId = sessionId;
     return {
       socketId: this.socketId,
       gameChar: this.gameChar,
-      userId: this.userId,
+      sessionId: this.sessionId,
     };
   }
 
@@ -26,7 +26,7 @@ export class Player {
     return {
       socketId: this.socketId,
       gameChar: this.gameChar,
-      userId: this.userId,
+      sessionId: this.sessionId,
     };
   }
 }

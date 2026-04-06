@@ -58,6 +58,7 @@ export function Board({
           setClosedModal(true);
         }}
         popup
+        position={"center"}
       >
         <ModalHeader className="rounded-t-md"></ModalHeader>
         <ModalBody className="rounded-b-md">
