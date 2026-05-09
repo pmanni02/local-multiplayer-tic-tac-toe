@@ -28,3 +28,15 @@ export type EventsMessageToServer = {
 };
 
 export type EventsMessageToClient = Omit<EventsMessageToServer, "room">;
+
+// Session recovery messages
+export type SessionRecoveryMessage = {
+  sessionId: string;
+};
+
+export type SessionRecoveredMessage = {
+  roomName: string;
+  playerChar: string;
+  squares: string[];
+  currentPlayer: string;
+};

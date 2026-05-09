@@ -11,6 +11,8 @@ import {
 import {
   type EventsMessageToClient,
   type GameInitializedMessage,
+  type SessionRecoveryMessage,
+  type SessionRecoveredMessage,
   GameStatusMessage,
   Nullable,
 } from '@repo/shared-types';
@@ -62,6 +64,16 @@ export class EventsGateway
         });
         const newPlayerChar = newPlayer?.getPlayerInfo().gameChar;
 
+        // Save session info
+        this.roomsManagerService.saveSession(
+          data.sessionId,
+          socket.id,
+          myRoom.name,
+          newPlayerChar || 'X',
+          Array(9).fill('') as string[],
+          'X',
+        );
+
         // only emit room/char info to own client
         this.server.to(socket.id).emit('roomDetermined', {
           roomName: myRoom.name,
@@ -76,6 +88,58 @@ export class EventsGateway
       } else {
         console.error(`socketId: ${socket.id} already in room/game`);
       }
+    }
+  }
+
+  // sessionRecovery -> check if sessionId exists and recover session state
+  @SubscribeMessage('sessionRecovery')
+  handleSessionRecovery(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody()
+    data: Record<string, string>,
+  ): void {
+    const { sessionId } = data;
+    const existingSession = this.roomsManagerService.getSession(sessionId);
+
+    if (existingSession) {
+      // Update socketId to new connection
+      this.roomsManagerService.updateSessionSocketId(sessionId, socket.id);
+
+      // Update the game instance with new socketId
+      const room = this.roomsManagerService.getRoomByName(
+        existingSession.roomName,
+      );
+      if (room) {
+        room.game.updatePlayerSocketId(sessionId, socket.id);
+        console.log(
+          `[GAME UPDATED]: Player ${sessionId} socketId updated to ${socket.id}`,
+        );
+      }
+
+      // Join the room
+      void socket.join(existingSession.roomName);
+
+      // Emit recovered session to client
+      const recoveredMessage: SessionRecoveredMessage = {
+        roomName: existingSession.roomName,
+        playerChar: existingSession.playerChar,
+        squares: existingSession.squares,
+        currentPlayer: existingSession.currentPlayer,
+      };
+
+      this.server.to(socket.id).emit('sessionRecovered', recoveredMessage);
+
+      console.log(
+        `[SESSION RECOVERED | ${getTimeNow()}]: sessionId: ${sessionId}, oldSocketId: ${existingSession.socketId}, newSocketId: ${socket.id}`,
+      );
+    } else {
+      this.server.to(socket.id).emit('sessionRecoveryFailed', {
+        message: 'Session not found',
+      });
+
+      console.log(
+        `[SESSION RECOVERY FAILED | ${getTimeNow()}]: sessionId: ${sessionId} not found`,
+      );
     }
   }
 
@@ -121,9 +185,19 @@ export class EventsGateway
       currentPlayer: string;
       room: string;
       status: string;
+      sessionId?: string;
     },
   ): void {
-    const { squares, socketId, room, status, currentPlayer } = data;
+    const { squares, socketId, room, status, currentPlayer, sessionId } = data;
+
+    // Save game state to session if available
+    if (sessionId) {
+      this.roomsManagerService.updateSessionGameState(
+        sessionId,
+        squares,
+        status === 'reset' ? 'X' : currentPlayer,
+      );
+    }
 
     // RESET
     if (status === 'reset') {

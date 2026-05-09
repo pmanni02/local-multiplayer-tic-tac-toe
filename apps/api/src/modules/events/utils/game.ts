@@ -43,6 +43,19 @@ export class Game {
     return player ? true : false;
   };
 
+  // Update player socketId when they reconnect
+  updatePlayerSocketId(sessionId: string, newSocketId: string): boolean {
+    const player = this.players.find(
+      (player) => player.getPlayerInfo().sessionId === sessionId,
+    );
+
+    if (player) {
+      player.setPlayerInfo({ socketId: newSocketId });
+      return true;
+    }
+    return false;
+  }
+
   #getPlayerChar = (): string => {
     const numPlayers = this.players.length;
     let playerChar: string;

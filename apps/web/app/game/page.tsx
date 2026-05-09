@@ -10,6 +10,7 @@ import {
   GameInitializedMessage,
   GameStatusMessage,
   RoomDeterminedMessage,
+  SessionRecoveredMessage,
 } from "@repo/shared-types";
 import { ConnectionStatus } from "./connection-status";
 import { redirect } from "next/navigation";
@@ -26,14 +27,30 @@ export default function Game() {
   // displays win/tie and current turn
   const [gameResult, setGameResult] = useState("");
   const [currentPlayer, setCurrentPlayer] = useState("");
+  const [hasAttemptedRecovery, setHasAttemptedRecovery] = useState(false);
 
   // TODO: add users to handle reconnection/page refresh
   useEffect(() => {
-    if (socket) {
-      if (socket.connected) {
-        socket.emit("playerConnected", { sessionId });
-      }
+    const storedSessionId = sessionStorage.getItem('gameSessionId');
 
+    // Handle session recovery logic
+    if (storedSessionId && !hasAttemptedRecovery) {
+      if (socket && socket.connected) {
+        // Socket is connected, attempt recovery immediately
+        console.log(`[SESSION RECOVERY]: Attempting to recover session: ${storedSessionId}`);
+        socket.emit('sessionRecovery', { sessionId: storedSessionId });
+        setHasAttemptedRecovery(true);
+      } else if (!socket) {
+        // Socket is null, wait for it to be available
+        console.log(`[SESSION RECOVERY]: Socket not ready, waiting for connection...`);
+        // Don't set hasAttemptedRecovery yet - we'll try again when socket is available
+      }
+    } else if (!storedSessionId && socket && socket.connected && !room) {
+      // No stored session, start fresh game
+      socket.emit("playerConnected", { sessionId });
+    }
+
+    if (socket) {
       // default first turn to player 'X'
       setCurrentPlayer("X");
 
@@ -50,6 +67,34 @@ export default function Game() {
           roomName,
         };
         socket!.emit("gameInitialized", gameInitializedMessage);
+      }
+
+      function onSessionRecovered({
+        roomName,
+        playerChar,
+        squares,
+        currentPlayer,
+      }: SessionRecoveredMessage) {
+        setRoom(roomName);
+        setPlayerChar(playerChar);
+        setSquares(squares);
+        setCurrentPlayer(currentPlayer);
+        setConnectionMessage("Session Recovered");
+
+        console.log(
+          `[SESSION RECOVERED]: ${roomName} | ${playerChar} | Squares: ${squares}`
+        );
+
+        // Re-join the game
+        const gameInitializedMessage: GameInitializedMessage = {
+          roomName,
+        };
+        socket!.emit("gameInitialized", gameInitializedMessage);
+      }
+
+      function onSessionRecoveryFailed() {
+        console.log("[SESSION RECOVERY FAILED]: Starting fresh game");
+        socket!.emit("playerConnected", { sessionId });
       }
 
       function onGameStatus({ message }: GameStatusMessage) {
@@ -77,34 +122,32 @@ export default function Game() {
       }
 
       socket.on("roomDetermined", onRoomDetermined);
+      socket.on("sessionRecovered", onSessionRecovered);
+      socket.on("sessionRecoveryFailed", onSessionRecoveryFailed);
       socket.on("gameStatus", onGameStatus);
       socket.on("gameEvent", onGameEvent);
       socket.on("gameEnd", onGameEnd);
+
+      return () => {
+        socket?.off("roomDetermined");
+        socket?.off("sessionRecovered");
+        socket?.off("sessionRecoveryFailed");
+        socket?.off("gameEvent");
+        socket?.off("gameEnd");
+        socket?.off("gameStatus");
+      };
     } else {
       console.info("Issue initializing socket context provider");
 
       if (sessionStorage.getItem('gameSessionId')) {
-        console.log('do not refresh')
-        // TODO: emit event to server to get stored details: room, gameChar
-        // - add socket.on() to handle event from ws server
-        // - NOTE: may need to reinitialize context provider here
-        //   OR just set socket, playerChar, room state
-        // - NOTE: game board is not saved on backend, so progress
-        //   will be lost
+        console.log('Waiting for socket connection...')
       } else {
         console.log('redirecting to home') //temp
         redirect('/')
       }
     }
-
-    return () => {
-      socket?.off("roomDetermined");
-      socket?.off("gameEvent");
-      socket?.off("gameEnd");
-      socket?.off("gameStatus");
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [socket, hasAttemptedRecovery]);
 
   return (
     <>
@@ -123,6 +166,7 @@ export default function Game() {
             currentPlayer={currentPlayer}
             room={room}
             socket={socket}
+            sessionId={sessionId}
           />
           <div className="flex flex-row justify-center gap-2 p-[2px]">
             <ResetGameButton room={room} />

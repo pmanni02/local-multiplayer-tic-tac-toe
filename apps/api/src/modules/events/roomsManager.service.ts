@@ -2,14 +2,25 @@ import { Injectable } from '@nestjs/common';
 import { Room } from './utils/room';
 import { PlayerT } from '../../types/types';
 
+interface SessionInfo {
+  sessionId: string;
+  socketId: string;
+  roomName: string;
+  playerChar: string;
+  squares: string[];
+  currentPlayer: string;
+}
+
 @Injectable()
 export class RoomsManagerService {
   private rooms: Map<string, Room>;
   private numClients: number;
+  private sessions: Map<string, SessionInfo>;
 
   constructor() {
     this.rooms = new Map();
     this.numClients = 0;
+    this.sessions = new Map();
   }
 
   incrementNumClients() {
@@ -84,4 +95,58 @@ export class RoomsManagerService {
   #getNewRoomName = (): string => {
     return `room${this.rooms.size + 1}`;
   };
+
+  // Session management methods
+  saveSession(
+    sessionId: string,
+    socketId: string,
+    roomName: string,
+    playerChar: string,
+    squares: string[],
+    currentPlayer: string,
+  ): void {
+    this.sessions.set(sessionId, {
+      sessionId,
+      socketId,
+      roomName,
+      playerChar,
+      squares,
+      currentPlayer,
+    });
+    // console.log(
+    //   `Session saved: ${JSON.stringify(this.sessions.get(sessionId))}`,
+    // );
+  }
+
+  getSession(sessionId: string): SessionInfo | undefined {
+    return this.sessions.get(sessionId);
+  }
+
+  updateSessionSocketId(sessionId: string, newSocketId: string): void {
+    const session = this.sessions.get(sessionId);
+    if (session) {
+      session.socketId = newSocketId;
+      this.sessions.set(sessionId, session);
+    }
+  }
+
+  deleteSession(sessionId: string): boolean {
+    return this.sessions.delete(sessionId);
+  }
+
+  updateSessionGameState(
+    sessionId: string,
+    squares: string[],
+    currentPlayer: string,
+  ): void {
+    const session = this.sessions.get(sessionId);
+    if (session) {
+      session.squares = squares;
+      session.currentPlayer = currentPlayer;
+      this.sessions.set(sessionId, session);
+    }
+    console.log(
+      `Session game state updated: ${JSON.stringify(this.sessions.get(sessionId))}`,
+    );
+  }
 }

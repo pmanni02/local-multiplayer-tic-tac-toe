@@ -12,6 +12,7 @@ export function Board({
   currentPlayer,
   room,
   socket,
+  sessionId,
 }: {
   squares: ("" | "X" | "O")[];
   gameResult: string;
@@ -20,6 +21,7 @@ export function Board({
   currentPlayer: string;
   room: string;
   socket: Nullable<Socket>;
+  sessionId?: string | null;
 }) {
   const [closedModal, setClosedModal] = useState(false);
   const isWrongTurn = currentPlayer !== playerChar;
@@ -43,6 +45,7 @@ export function Board({
           socketId: socket.id,
           currentPlayer: playerChar === "X" ? "O" : "X",
           room,
+          sessionId,
         });
       }
     }
