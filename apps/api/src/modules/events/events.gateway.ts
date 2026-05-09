@@ -11,7 +11,6 @@ import {
 import {
   type EventsMessageToClient,
   type GameInitializedMessage,
-  type SessionRecoveryMessage,
   type SessionRecoveredMessage,
   GameStatusMessage,
   Nullable,
@@ -42,7 +41,7 @@ export class EventsGateway
     this.roomsManagerService.incrementNumClients();
   }
 
-  // playerConnected -> find/join room, emit roomDetermined
+  // Player Connected -> find/join room, emit roomDetermined
   @SubscribeMessage('playerConnected')
   handlePlayerConnected(
     @ConnectedSocket() socket: Socket,
@@ -56,7 +55,7 @@ export class EventsGateway
       const myRoom = this.roomsManagerService.findOpenRoom();
 
       if (!myRoom.game.playerIsInGame(socket.id)) {
-        // get game from room, add player to room
+        // Get game from room, add player to room
         const myGame = myRoom.game;
         const newPlayer = myGame.addPlayer({
           socketId: socket.id,
@@ -74,13 +73,13 @@ export class EventsGateway
           'X',
         );
 
-        // only emit room/char info to own client
+        // Only emit room/char info to own client
         this.server.to(socket.id).emit('roomDetermined', {
           roomName: myRoom.name,
           playerChar: newPlayerChar,
         });
 
-        // join room
+        // Join room
         void socket.join(myRoom.name);
 
         console.log(`[PLAYER JOINED | ${getTimeNow()}]: ${socket.id}`);
@@ -91,7 +90,7 @@ export class EventsGateway
     }
   }
 
-  // sessionRecovery -> check if sessionId exists and recover session state
+  // SessionRecovery -> check if sessionId exists and recover session state
   @SubscribeMessage('sessionRecovery')
   handleSessionRecovery(
     @ConnectedSocket() socket: Socket,
@@ -119,15 +118,31 @@ export class EventsGateway
       // Join the room
       void socket.join(existingSession.roomName);
 
-      // Emit recovered session to client
-      const recoveredMessage: SessionRecoveredMessage = {
-        roomName: existingSession.roomName,
-        playerChar: existingSession.playerChar,
+      // Get current game board state from room (full state, not session state)
+      const currentGameState = room?.getGameBoard() || {
         squares: existingSession.squares,
         currentPlayer: existingSession.currentPlayer,
       };
 
+      // Emit recovered session to client with current game board state
+      const recoveredMessage: SessionRecoveredMessage = {
+        roomName: existingSession.roomName,
+        playerChar: existingSession.playerChar,
+        squares: currentGameState.squares,
+        currentPlayer: currentGameState.currentPlayer,
+      };
+
       this.server.to(socket.id).emit('sessionRecovered', recoveredMessage);
+
+      // Emit game status to the room
+      if (room && room.game.getPlayers().length === 2) {
+        const statusMessage: GameStatusMessage = {
+          message: 'Game Ready',
+        };
+        this.server
+          .to(existingSession.roomName)
+          .emit('gameStatus', statusMessage);
+      }
 
       console.log(
         `[SESSION RECOVERED | ${getTimeNow()}]: sessionId: ${sessionId}, oldSocketId: ${existingSession.socketId}, newSocketId: ${socket.id}`,
@@ -143,7 +158,7 @@ export class EventsGateway
     }
   }
 
-  // gameInitialized -> determine/emit gameStatus
+  // GameInitialized -> determine/emit gameStatus
   @SubscribeMessage('gameInitialized')
   handleGameInitialized(
     @MessageBody()
@@ -153,16 +168,16 @@ export class EventsGateway
     const { roomName } = data;
     const room = this.roomsManagerService.getRoomByName(roomName);
 
-    // if there is a game and socketId is not in gameMap already, update gameMap
+    // If there is a game and socketId is not in gameMap already, update gameMap
     if (room) {
       let msg: Nullable<GameStatusMessage> = null;
       if (room.game.getPlayers().length === 1) {
-        // emit to self (only player room)
+        // Emit to self (only player room)
         msg = {
           message: 'Waiting for opponent',
         };
       } else if (room.game.getPlayers().length === 2) {
-        // emit to all players in room
+        // Emit to all players in room
         msg = {
           message: 'Game Ready',
         };
@@ -175,7 +190,7 @@ export class EventsGateway
 
   // --------------------------------------------------------------------
 
-  // gameEvent -> rebroadcast to clients in room
+  // GameEvent -> rebroadcast to clients in room
   @SubscribeMessage('gameEvent')
   handleBroadcastGameEvent(
     @MessageBody()
@@ -190,13 +205,19 @@ export class EventsGateway
   ): void {
     const { squares, socketId, room, status, currentPlayer, sessionId } = data;
 
-    // Save game state to session if available
+    // Save game state to session and room if available
     if (sessionId) {
       this.roomsManagerService.updateSessionGameState(
         sessionId,
         squares,
         status === 'reset' ? 'X' : currentPlayer,
       );
+    }
+
+    const roomObj = this.roomsManagerService.getRoomByName(room);
+    // Update the room's game board
+    if (roomObj) {
+      roomObj.setGameBoard(squares, status === 'reset' ? 'X' : currentPlayer);
     }
 
     // RESET
@@ -234,7 +255,7 @@ export class EventsGateway
 
   // --------------------------------------------------------------------
 
-  // client disconnected -> update room object, decrement total client count
+  // Client disconnected -> update room object, decrement total client count
   handleDisconnect(socket: Socket): void {
     const msg = {
       message: 'Opponent Disconnected',
@@ -245,7 +266,7 @@ export class EventsGateway
     this.roomsManagerService.decrementNumClients();
   }
 
-  // client left room -> update room object
+  // Client left room -> update room object
   @SubscribeMessage('clientDisconnected')
   handGameEnded(@ConnectedSocket() socket: Socket): void {
     const room = this.roomsManagerService.getRoomById('socketId', socket.id);
@@ -260,13 +281,38 @@ export class EventsGateway
 
   private handleDisconnectEvent(msg: Record<string, string>, socket: Socket) {
     const room = this.roomsManagerService.getRoomById('socketId', socket.id);
-    room?.game.removePlayerBySocketId(socket.id);
-    const remainingPlayers = room?.game.getPlayers();
+    if (!room) return;
 
-    if (remainingPlayers && remainingPlayers.length === 1) {
-      const opponentSocketId = remainingPlayers[0].getPlayerInfo().socketId;
-      if (msg) socket.to(opponentSocketId).emit('gameStatus', msg);
-      room?.printRoom();
+    const disconnectedPlayer = room.game
+      .getPlayers()
+      .find((player) => player.getPlayerInfo().socketId === socket.id);
+
+    const remainingPlayers = room.game
+      .getPlayers()
+      .filter((player) => player.getPlayerInfo().socketId !== socket.id);
+
+    const sessionId = disconnectedPlayer?.getPlayerInfo().sessionId;
+    const hasSession = sessionId
+      ? this.roomsManagerService.getSession(sessionId)
+      : undefined;
+
+    if (hasSession) {
+      // Preserve disconnected player in the game for reconnect
+      if (remainingPlayers.length === 1) {
+        const opponentSocketId = remainingPlayers[0].getPlayerInfo().socketId;
+        if (msg) this.server.to(opponentSocketId).emit('gameStatus', msg);
+      }
+      room.printRoom();
+      return;
+    }
+
+    room.game.removePlayerBySocketId(socket.id);
+    const updatedPlayers = room.game.getPlayers();
+
+    if (updatedPlayers.length === 1) {
+      const opponentSocketId = updatedPlayers[0].getPlayerInfo().socketId;
+      if (msg) this.server.to(opponentSocketId).emit('gameStatus', msg);
+      room.printRoom();
     }
   }
 }

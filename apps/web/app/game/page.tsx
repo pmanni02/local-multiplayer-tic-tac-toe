@@ -13,23 +13,21 @@ import {
   SessionRecoveredMessage,
 } from "@repo/shared-types";
 import { ConnectionStatus } from "./connection-status";
-import { redirect } from "next/navigation";
 
 export default function Game() {
   const { socket, sessionId } = useSocketContext();
   const [squares, setSquares] = useState(Array(9).fill(""));
   const [connectionMessage, setConnectionMessage] = useState("...");
 
-  // room and player char
+  // Room and player char
   const [room, setRoom] = useState("");
   const [playerChar, setPlayerChar] = useState("");
 
-  // displays win/tie and current turn
+  // Displays win/tie and current turn
   const [gameResult, setGameResult] = useState("");
   const [currentPlayer, setCurrentPlayer] = useState("");
   const [hasAttemptedRecovery, setHasAttemptedRecovery] = useState(false);
 
-  // TODO: add users to handle reconnection/page refresh
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('gameSessionId');
 
@@ -42,8 +40,8 @@ export default function Game() {
         setHasAttemptedRecovery(true);
       } else if (!socket) {
         // Socket is null, wait for it to be available
-        console.log(`[SESSION RECOVERY]: Socket not ready, waiting for connection...`);
         // Don't set hasAttemptedRecovery yet - we'll try again when socket is available
+        console.log(`[SESSION RECOVERY]: Socket not ready, waiting for connection...`);
       }
     } else if (!storedSessionId && socket && socket.connected && !room) {
       // No stored session, start fresh game
@@ -51,7 +49,7 @@ export default function Game() {
     }
 
     if (socket) {
-      // default first turn to player 'X'
+      // Default first turn to player 'X'
       setCurrentPlayer("X");
 
       function onRoomDetermined({
@@ -62,7 +60,7 @@ export default function Game() {
         setPlayerChar(playerChar);
         console.log(`[ROOM]: ${roomName} | [CHAR]: ${playerChar}`);
 
-        // get player character, room
+        // Get player character, room
         const gameInitializedMessage: GameInitializedMessage = {
           roomName,
         };
@@ -141,9 +139,6 @@ export default function Game() {
 
       if (sessionStorage.getItem('gameSessionId')) {
         console.log('Waiting for socket connection...')
-      } else {
-        console.log('redirecting to home') //temp
-        redirect('/')
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
