@@ -15,16 +15,16 @@ import {
   Nullable,
 } from '@repo/shared-types';
 import { Server, Socket } from 'socket.io';
-import { RoomsManagerService } from 'src/modules/events/roomsManager.service';
-import { getTimeNow } from 'src/utils';
 import { gameTie, gameWon } from '../game/game.utils';
+import { RoomsManagerService } from './roomsManager.service';
+import { getTimeNow } from '../../utils';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   constructor(private roomsManagerService: RoomsManagerService) {}
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server!: Server;
 
   afterInit() {
     console.log('Websocket server initialized!');

@@ -1,4 +1,4 @@
-import { OptionalPlayerT, PlayerT } from 'src/types/types';
+import { OptionalPlayerT, PlayerT } from '../../../types/types';
 
 export class Player {
   private socketId: string;

@@ -1,4 +1,4 @@
-import { PlayerT } from 'src/types/types';
+import { PlayerT } from '../../../types/types';
 import { Player } from './player';
 
 export class Game {
